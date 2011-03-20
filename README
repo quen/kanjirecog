@@ -46,6 +46,14 @@ Examine build.xml if you want to change where it puts temporary data or the
 resulting output files.
 
 
+Documentation
+-------------
+
+Please look inside the javadoc (or the source package-info.java) to see
+how to use this library to recognise characters. You might also want to
+look at the source for the example applet, although it's a bit of a mess.
+
+
 Android version
 ---------------
 
