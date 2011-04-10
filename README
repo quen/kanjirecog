@@ -5,70 +5,24 @@ Copyright 2011 Samuel Marshall
 
 Released under GNU Public License v3 (see LICENSE)
 
+This branch is the Android app. See the main 'master' branch for the standard
+Java library.
+
 
 Trying it out
 -------------
 
-You can try out this recogniser using the applet here:
+You can try out this Android app from the Android Market. Search for
+'kanji draw'.
 
-http://live.leafdigital.com/kanji/
-
-
-Using binaries
---------------
-
-If you just want to use this library, grab the binary jar files. 
-
-There are two files: kanjirecog.[version].jar and 
-kanjirecog.[version].javadoc.jar.
-
-* You only need the main jar file (add it to your application) to use this
-  utility.
-  
-* The second jar file contains the javadoc documentation. If you add this
-  in the 'attached javadoc' field for the library in an IDE such as Eclipse,
-  your IDE will be able to automatically show the documentation for this class.
-
-The jar files do not include the example application/applet in
-com.leafdigital.kanji.example. Obtain the source files for this directly.
+https://market.android.com/details?id=com.leafdigital.kanji.android
 
 
 Build instructions
 ------------------
 
-If you want to build this project, download the source using Git or the
-GitHub download option.
-
-Once you have downloaded the source, just change to the directory with this
-file in and run 'ant'. The default build.xml file will build the project.
-
-Examine build.xml if you want to change where it puts temporary data or the
-resulting output files.
-
-
-Documentation
--------------
-
-Please look inside the javadoc (or the source package-info.java) to see
-how to use this library to recognise characters. You might also want to
-look at the source for the example applet, although it's a bit of a mess.
-
-
-Android version
----------------
-
-TODO Android version does not exist yet. Please wait.
-
-This library includes an Android component in the 'android' source folder.
-At present the easiest way to build this is as follows:
-
-* Install the standard jar file into your Android project:
-  <instructions on how to do this, to follow>
-  
-* Copy the source package from the 'android' folder into the 'src' folder
-  of an Android project.
-  
-TODO: Can provide a single Android jar?
+This project should work when installed into Google's Eclipse-based
+Android development system.
 
 
 Repository information
