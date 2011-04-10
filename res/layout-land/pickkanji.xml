@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal">
+
+<LinearLayout 
+	android:id="@+id/drawcontainer"
+	android:layout_width="wrap_content"
+	android:layout_height="fill_parent"
+	android:orientation="vertical"
+	android:layout_weight="1"
+	android:background="#484040"/>
+
+<LinearLayout 
+	android:layout_width="wrap_content" 
+	android:layout_height="fill_parent" 
+	android:orientation="vertical">
+    <Button
+    	android:id="@+id/undo"
+    	android:text="@string/undo"
+    	android:enabled="false"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_weight="1"
+    	/>
+    <Button
+    	android:id="@+id/clear"
+    	android:text="@string/clear"
+    	android:enabled="false"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_weight="1"
+    	/>
+    <LinearLayout 
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+    	android:layout_weight="1"
+		android:orientation="vertical">
+    	<TextView
+    		android:text="@string/strokes"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content"
+	    	android:gravity="center_horizontal"
+    		/>
+    	<TextView
+    		android:id="@+id/strokes"
+    		android:text="0"
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="wrap_content"
+	    	android:gravity="center_horizontal"
+	    	android:textSize="32dp"
+    		/>
+	</LinearLayout>
+    <Button
+    	android:id="@+id/done"
+    	android:text="@string/done"
+    	android:enabled="false"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_weight="1"
+    	/>
+</LinearLayout>
+
+</LinearLayout>

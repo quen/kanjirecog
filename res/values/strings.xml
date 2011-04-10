@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="drawkanji">Add kanji</string>
+    <string name="copy">Copy and clear</string>
+    <string name="app_name">Kanji draw</string>
+    <string name="undo">Undo</string>
+    <string name="clear">Clear</string>
+    <string name="strokes">Strokes</string>
+    <string name="done">Done</string>
+    <string name="fuzzy">Inexact matches</string>
+    <string name="waitexact">Finding exact matches...</string>
+    <string name="pickexact">Exact matches (# strokes)</string>
+    <string name="pickexact1">Exact matches (1 stroke)</string>
+    <string name="waitfuzzy">Finding inexact matches...</string>
+    <string name="pickfuzzy">Inexact matches (# strokes)</string>
+    <string name="pickfuzzy1">Inexact matches (1 stroke)</string>
+    <string name="more">More</string>
+    <string name="plusminus1">Inexact matches (± 1 stroke)</string>
+    <string name="pickfuzzypm1">Inexact matches (# strokes ± 1)</string>
+    <string name="pickfuzzy1pm1">Inexact matches (2 strokes)</string>
+    <string name="giveup">Give up</string>
+</resources>
