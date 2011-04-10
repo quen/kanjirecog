@@ -28,7 +28,6 @@ public class FuzzyComparer
 	
 	private final static float SCOREMULTI_NOT_PAIR = 0.9f;
 	private final static float SCOREMULTI_WRONG_DIRECTION = 0.97f;
-	private final static float SCOREMULTI_WRONG_COUNT = 0.98f;
 
 	private final static int BEST_SCORES_SORT_FIRST = 5;
 
@@ -473,19 +472,6 @@ public class FuzzyComparer
 		
 		// Scale score (it is now up to 2 * max * number of pairs matched)
 		totalScore /= 2 * maxScore * (drawnPairs.length - pairsLeft);
-		
-		// Score penalty if the number of pairs is different
-		int drawnLength = drawnPairs.length;
-		while(drawnLength < otherPairs.length)
-		{
-			totalScore *= SCOREMULTI_WRONG_COUNT;
-			drawnLength++;
-		}
-		while(drawnLength > otherPairs.length)
-		{
-			totalScore *= SCOREMULTI_WRONG_COUNT;
-			drawnLength--;
-		}
 		
 		// Return as percentage
 		return totalScore * 100f;
