@@ -28,22 +28,35 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.leafdigital.kanji.KanjiInfo.MatchAlgorithm;
 
-/** 
+/**
  * Stores list of all {@link KanjiInfo} objects loaded, organised by
  * stroke count.
  */
 public class KanjiList
 {
-	private SortedMap<Integer, List<KanjiInfo>> kanji = 
+	private SortedMap<Integer, List<KanjiInfo>> kanji =
 		new TreeMap<Integer, List<KanjiInfo>>();
-	
+
+	/**
+	 * Interface that can be used to receive progress information about search.
+	 */
+	public interface Progress
+	{
+		/**
+		 * Called each time progress increases (from 0 through to max, inclusive).
+		 * @param done Amount of progress achieved
+		 * @param max Maximum at which task will be achieved
+		 */
+		public void progress(int done, int max);
+	}
+
 	/**
 	 * Default constructor (blank list).
 	 */
 	public KanjiList()
 	{
 	}
-	
+
 	/**
 	 * SAX handler.
 	 */
@@ -53,7 +66,7 @@ public class KanjiList
 		public void startElement(String uri, String localName, String qName,
 			Attributes attributes) throws SAXException
 		{
-			if(qName.equals("kanji"))
+			if(qName.equals("kanji") || localName.equals("kanji"))
 			{
 				// Get unicode
 				String id = attributes.getValue("unicode");
@@ -70,29 +83,19 @@ public class KanjiList
 				{
 					throw new SAXException("<kanji> tag invalid unicode= (" + id + ")");
 				}
-				
+
 				// Get strokes summary
 				String full = attributes.getValue("strokes");
 				if(full == null)
 				{
 					throw new SAXException("<kanji> tag missing strokes=");
 				}
-				
-				// Get directions (optional)
-//				String directions = attributes.getValue("directions");
-				
+
 				// Get kanji as string
 				String kanjiString = new String(Character.toChars(codePoint));
 				try
 				{
-//					if(directions == null)
-//					{
 						add(new KanjiInfo(kanjiString, full));
-//					}
-//					else
-//					{
-//						add(new KanjiInfo(kanjiString, directions, full));
-//					}
 				}
 				catch(IllegalArgumentException e)
 				{
@@ -101,7 +104,7 @@ public class KanjiList
 			}
 		}
 	}
-	
+
 	/**
 	 * Construct and load from XML file.
 	 * @param in Input stream
@@ -110,7 +113,7 @@ public class KanjiList
 	public KanjiList(InputStream in) throws IOException
 	{
 		// Parse data
-		SAXParser parser;		
+		SAXParser parser;
 		try
 		{
 			parser = SAXParserFactory.newInstance().newSAXParser();
@@ -130,7 +133,7 @@ public class KanjiList
 			throw x;
 		}
 	}
-	
+
 	/**
 	 * Adds a kanji to the list.
 	 * @param info Kanji to add
@@ -146,7 +149,7 @@ public class KanjiList
 		}
 		list.add(info);
 	}
-	
+
 	/**
 	 * @param strokeCount Stroke count
 	 * @return All kanji with that stroke count
@@ -160,16 +163,18 @@ public class KanjiList
 		}
 		return list.toArray(new KanjiInfo[list.size()]);
 	}
-	
+
 	/**
 	 * Searches for closest matches.
 	 * @param compare Kanji to compare
 	 * @param algo Match algorithm to use
+	 * @param progress Progress reporter (null if not needed)
 	 * @return Top matches above search threshold
 	 * @throws IllegalArgumentException If match algorithm not set
 	 */
 	public synchronized KanjiMatch[] getTopMatches(KanjiInfo compare,
-		KanjiInfo.MatchAlgorithm algo) throws IllegalArgumentException
+		KanjiInfo.MatchAlgorithm algo, Progress progress)
+		throws IllegalArgumentException
 	{
 		TreeSet<KanjiMatch> matches = new TreeSet<KanjiMatch>();
 		switch(algo)
@@ -179,6 +184,12 @@ public class KanjiList
 				List<KanjiInfo> list = kanji.get(compare.getStrokeCount());
 				if(list != null)
 				{
+					int max = list.size();
+					if(progress != null)
+					{
+						progress.progress(0, max);
+					}
+					int i = 0;
 					for(KanjiInfo other : list)
 					{
 						float score = compare.getMatchScore(other, algo);
@@ -186,6 +197,10 @@ public class KanjiList
 						{
 							KanjiMatch match = new KanjiMatch(other, score);
 							matches.add(match);
+						}
+						if(progress != null)
+						{
+							progress.progress(++i, max);
 						}
 					}
 				}
@@ -198,7 +213,7 @@ public class KanjiList
 				if(compare.getStrokeCount() > 0)
 				{
 					// Do either -2 and +2, -1 and +1, or just 0
-					int range = (algo==MatchAlgorithm.FUZZY_2OUT) ? 2 
+					int range = (algo==MatchAlgorithm.FUZZY_2OUT) ? 2
 						: (algo==MatchAlgorithm.FUZZY_1OUT) ? 1 : 0;
 					int count = compare.getStrokeCount() - range;
 					for(int i=0; i<2; i++)
@@ -218,17 +233,27 @@ public class KanjiList
 						}
 					}
 				}
+				int max = list.size();
+				if(progress != null)
+				{
+					progress.progress(0, max);
+				}
+				int i = 0;
 				for(KanjiInfo other : list)
 				{
 					float score = compare.getMatchScore(other, algo);
 					KanjiMatch match = new KanjiMatch(other, score);
 					matches.add(match);
+					if(progress != null)
+					{
+						progress.progress(++i, max);
+					}
 				}
 			} break;
 		default:
-			throw new IllegalArgumentException("Unknown algorithm");	
+			throw new IllegalArgumentException("Unknown algorithm");
 		}
-		
+
 		// Pull everything down to half match score
 		LinkedList<KanjiMatch> results = new LinkedList<KanjiMatch>();
 		float maxScore = -1;
@@ -247,10 +272,10 @@ public class KanjiList
 			}
 			results.add(match);
 		}
-		
+
 		return results.toArray(new KanjiMatch[results.size()]);
 	}
-	
+
 	/**
 	 * Saves this list to an XML file.
 	 * @param out Stream to receive XML data
@@ -281,7 +306,7 @@ public class KanjiList
 		  + "See http://creativecommons.org/licenses/by-sa/3.0/ for more details.\n"
 		  + "-->\n"
 			+ "<strokes>");
-			
+
 		for(List<KanjiInfo> list : kanji.values())
 		{
 			for(KanjiInfo character : list)
@@ -289,7 +314,7 @@ public class KanjiList
 				character.write(writer);
 			}
 		}
-		
+
 		writer.write("</strokes>");
 		writer.close();
 	}
