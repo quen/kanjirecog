@@ -21,6 +21,7 @@ package com.leafdigital.kanji;
 import java.io.FileInputStream;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import com.leafdigital.kanji.KanjiInfo.MatchAlgorithm;
 
@@ -145,8 +146,12 @@ public class AnalyseRecognition
 		}
 	}
 
-	private int count;
+	private final static int MAX_QUEUE_SIZE = 10;
+
+	private int processed, added;
 	private KanjiList list;
+
+	private ExecutorService threadPool;
 
 	private Map<MatchAlgorithm, AlgoResults> results;
 
@@ -262,58 +267,77 @@ public class AnalyseRecognition
 	 * Starts analysis process.
 	 * @throws Exception
 	 */
-	private void start() throws Exception
+	private synchronized void start() throws Exception
 	{
-		count = 0;
+		processed = 0;
+		added = 0;
 		list = new KanjiList(new FileInputStream("data/strokes-20100823.xml"));
 		results = new TreeMap<MatchAlgorithm, AlgoResults>();
+
+		// Start the thread pool
+		threadPool = Executors.newFixedThreadPool(
+			Runtime.getRuntime().availableProcessors());
 	}
 
 	/**
 	 * Processes a single kanji drawing.
 	 * @param drawing Drawing
 	 * @param kanji Resulting selected kanji
+	 * @throws InterruptedException Probably shouldn't really happen
 	 */
-	private void process(String drawing, String kanji)
+	private synchronized void process(final String drawing, final String kanji)
+		throws InterruptedException
 	{
-		// This could run much faster if I multi-cored it, but I'm currently too
-		// lazy. Maybe when the database gets bigger... (The best approach would
-		// be to have a list of tasks and a number of worker threads that process
-		// them; this method would add tasks to the list.)
-
-		// Create drawing info
-		KanjiInfo drawingInfo = new KanjiInfo(kanji, drawing);
-
-		// Find actual number of strokes
-		int actualStrokes = list.find(kanji).getStrokeCount();
-
-		// Decide which algorithms to use based on stroke count
-		MatchAlgorithm[] algorithms;
-		if(actualStrokes == drawingInfo.getStrokeCount())
+		while(added > processed + MAX_QUEUE_SIZE)
 		{
-			algorithms = new MatchAlgorithm[] { MatchAlgorithm.STRICT, MatchAlgorithm.FUZZY };
+			wait();
 		}
-		else if(Math.abs(actualStrokes - drawingInfo.getStrokeCount()) == 1)
+		added++;
+		threadPool.execute(new Runnable()
 		{
-			algorithms = new MatchAlgorithm[] { MatchAlgorithm.FUZZY_1OUT };
-		}
-		else if(Math.abs(actualStrokes - drawingInfo.getStrokeCount()) == 2)
-		{
-			algorithms = new MatchAlgorithm[] { MatchAlgorithm.FUZZY_1OUT };
-		}
-		else
-		{
-			algorithms = new MatchAlgorithm[0];
-		}
+			@Override
+			public void run()
+			{
+				// Create drawing info
+				KanjiInfo drawingInfo = new KanjiInfo(kanji, drawing);
 
-		// Process for each algorithm
-		for(MatchAlgorithm algo : algorithms)
-		{
-			process(drawingInfo, algo);
-		}
+				// Find actual number of strokes
+				int actualStrokes = list.find(kanji).getStrokeCount();
 
-		count++;
-		System.err.print("Processed: " + count + "\r");
+				// Decide which algorithms to use based on stroke count
+				MatchAlgorithm[] algorithms;
+				if(actualStrokes == drawingInfo.getStrokeCount())
+				{
+					algorithms = new MatchAlgorithm[] { MatchAlgorithm.STRICT, MatchAlgorithm.FUZZY };
+				}
+				else if(Math.abs(actualStrokes - drawingInfo.getStrokeCount()) == 1)
+				{
+					algorithms = new MatchAlgorithm[] { MatchAlgorithm.FUZZY_1OUT };
+				}
+				else if(Math.abs(actualStrokes - drawingInfo.getStrokeCount()) == 2)
+				{
+					algorithms = new MatchAlgorithm[] { MatchAlgorithm.FUZZY_1OUT };
+				}
+				else
+				{
+					algorithms = new MatchAlgorithm[0];
+				}
+
+				// Process for each algorithm
+				for(MatchAlgorithm algo : algorithms)
+				{
+					process(drawingInfo, algo);
+				}
+
+				synchronized(AnalyseRecognition.this)
+				{
+					processed++;
+					System.err.print("Processed: " + processed + "\r");
+					AnalyseRecognition.this.notifyAll();
+				}
+			}
+		});
+
 	}
 
 	/**
@@ -323,31 +347,38 @@ public class AnalyseRecognition
 	 */
 	private void process(KanjiInfo drawingInfo, MatchAlgorithm algo)
 	{
-		AlgoResults algoResults = results.get(algo);
-		if(algoResults == null)
-		{
-			algoResults = new AlgoResults(algo);
-			results.put(algo, algoResults);
-		}
-
 		KanjiMatch[] matches = list.getTopMatches(drawingInfo, algo, null);
-		for(int i=0; i<matches.length; i++)
-		{
-			if(matches[i].getKanji().getKanji().equals(drawingInfo.getKanji()))
-			{
-				algoResults.addRanking(i+1);
-				return;
-			}
-		}
 
-		algoResults.addFailure(drawingInfo);
+		synchronized(AnalyseRecognition.this)
+		{
+			AlgoResults algoResults = results.get(algo);
+			if(algoResults == null)
+			{
+				algoResults = new AlgoResults(algo);
+				results.put(algo, algoResults);
+			}
+
+			for(int i=0; i<matches.length; i++)
+			{
+				if(matches[i].getKanji().getKanji().equals(drawingInfo.getKanji()))
+				{
+					algoResults.addRanking(i+1);
+					return;
+				}
+			}
+
+			algoResults.addFailure(drawingInfo);
+		}
 	}
 
 	/**
 	 * Called when the analysis run finishes. Displays all results.
+	 * @throws Exception Any error
 	 */
-	private void finish()
+	private void finish() throws Exception
 	{
+		threadPool.shutdown();
+		threadPool.awaitTermination(1, TimeUnit.DAYS);
 		System.err.println();
 		for(Map.Entry<MatchAlgorithm,AlgoResults> entry : results.entrySet())
 		{

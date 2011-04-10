@@ -192,7 +192,7 @@ public class KanjiList
 	 * @return Top matches above search threshold
 	 * @throws IllegalArgumentException If match algorithm not set
 	 */
-	public synchronized KanjiMatch[] getTopMatches(KanjiInfo compare,
+	public KanjiMatch[] getTopMatches(KanjiInfo compare,
 		KanjiInfo.MatchAlgorithm algo, Progress progress)
 		throws IllegalArgumentException
 	{
@@ -201,7 +201,11 @@ public class KanjiList
 		{
 		case STRICT:
 			{
-				List<KanjiInfo> list = kanji.get(compare.getStrokeCount());
+				List<KanjiInfo> list;
+				synchronized(this)
+				{
+					list = new LinkedList<KanjiInfo>(kanji.get(compare.getStrokeCount()));
+				}
 				if(list != null)
 				{
 					int max = list.size();
@@ -232,24 +236,27 @@ public class KanjiList
 				List<KanjiInfo> list = new LinkedList<KanjiInfo>();
 				if(compare.getStrokeCount() > 0)
 				{
-					// Do either -2 and +2, -1 and +1, or just 0
-					int range = (algo==MatchAlgorithm.FUZZY_2OUT) ? 2
-						: (algo==MatchAlgorithm.FUZZY_1OUT) ? 1 : 0;
-					int count = compare.getStrokeCount() - range;
-					for(int i=0; i<2; i++)
+					synchronized(this)
 					{
-						if(count > 0)
+						// Do either -2 and +2, -1 and +1, or just 0
+						int range = (algo==MatchAlgorithm.FUZZY_2OUT) ? 2
+							: (algo==MatchAlgorithm.FUZZY_1OUT) ? 1 : 0;
+						int count = compare.getStrokeCount() - range;
+						for(int i=0; i<2; i++)
 						{
-							List<KanjiInfo> countList = kanji.get(count);
-							if(countList != null)
+							if(count > 0)
 							{
-								list.addAll(countList);
+								List<KanjiInfo> countList = kanji.get(count);
+								if(countList != null)
+								{
+									list.addAll(countList);
+								}
 							}
-						}
-						count += 2 * range;
-						if (range == 0)
-						{
-							break;
+							count += 2 * range;
+							if (range == 0)
+							{
+								break;
+							}
 						}
 					}
 				}
