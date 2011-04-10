@@ -20,6 +20,8 @@ package com.leafdigital.kanji;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.FileInputStream;
+
 import org.junit.Test;
 
 /** Test stroke features. */
@@ -59,6 +61,6 @@ public class KanjiListTest
 	@Test
 	public void testLoad() throws Exception
 	{
-		new KanjiList(KanjiList.class.getResourceAsStream("strokes-20100823.xml"));
+		new KanjiList(new FileInputStream("data/strokes-20100823.xml"));
 	}
 }

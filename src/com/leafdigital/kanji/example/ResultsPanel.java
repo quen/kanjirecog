@@ -358,7 +358,8 @@ public class ResultsPanel extends JPanel implements KanjiPanel.Handler
 		@Override
 		public void run()
 		{
-			final KanjiMatch[] matches = kanjiList.getTopMatches(potentialKanji, algo);
+			final KanjiMatch[] matches = kanjiList.getTopMatches(
+				potentialKanji, algo, null);
 			SwingUtilities.invokeLater(new Runnable()
 			{
 				@Override

@@ -19,6 +19,7 @@ Copyright 2011 Samuel Marshall.
 package com.leafdigital.kanji.example;
 
 import java.awt.BorderLayout;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.*;
@@ -34,8 +35,16 @@ public class ExampleApp extends JFrame
 	public ExampleApp()
 	{
 		super("Kanji recognition test");
-		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(new ExamplePanel(getLayeredPane(), null));
+		try
+		{
+			getContentPane().setLayout(new BorderLayout());
+			getContentPane().add(new ExamplePanel(
+				new FileInputStream("data/strokes-20100823.xml"), getLayeredPane(), null));
+		}
+		catch(IOException e)
+		{
+			throw new Error(e);
+		}
 		
 		pack();
 		setDefaultCloseOperation(EXIT_ON_CLOSE);

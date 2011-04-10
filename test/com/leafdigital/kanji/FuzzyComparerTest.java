@@ -20,6 +20,8 @@ package com.leafdigital.kanji;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.FileInputStream;
+
 import org.junit.Test;
 
 /** Test fuzzy comparer. */
@@ -43,7 +45,7 @@ public class FuzzyComparerTest
 		// checking it can be used for timing comparison (increasing the limit may
 		// give more stable results).
 		KanjiList list = new KanjiList(
-			KanjiList.class.getResourceAsStream("strokes-20100823.xml"));
+			new FileInputStream("data/strokes-20100823.xml"));
 		KanjiInfo[] all20 = list.getKanji(20);
 		for(int i=0; i<all20.length && i<(DEBUG ? 100 : 5); i++)
 		{
@@ -57,7 +59,7 @@ public class FuzzyComparerTest
 				}
 			}
 			KanjiMatch[] matches = 
-				list.getTopMatches(big, KanjiInfo.MatchAlgorithm.FUZZY);
+				list.getTopMatches(big, KanjiInfo.MatchAlgorithm.FUZZY, null);
 			assertEquals(big.getKanji(), matches[0].getKanji().getKanji());
 		}
 	}

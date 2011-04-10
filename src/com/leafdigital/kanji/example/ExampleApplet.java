@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 
 import javax.swing.JApplet;
 
+import com.leafdigital.kanji.KanjiList;
+
 /**
  * Applet for testing the recogniser.
  */
@@ -36,7 +38,9 @@ public class ExampleApplet extends JApplet
 	public void start()
 	{
 		getContentPane().setLayout(new BorderLayout());
-		getContentPane().add(new ExamplePanel(getLayeredPane(), new ResultReporter.Handler()
+		getContentPane().add(new ExamplePanel(
+			KanjiList.class.getResourceAsStream("strokes-20100823.xml"),
+			getLayeredPane(), new ResultReporter.Handler()
 		{
 			@Override
 			public void newKanji(String kanji)

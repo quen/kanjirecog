@@ -19,7 +19,7 @@ Copyright 2011 Samuel Marshall.
 package com.leafdigital.kanji.example;
 
 import java.awt.*;
-import java.io.IOException;
+import java.io.*;
 
 import javax.swing.*;
 
@@ -35,19 +35,20 @@ public class ExamplePanel extends JPanel
 	
 	/**
 	 * Constructs panel and loads kanji list.
+	 * @param databaseStream Input stream containing database
 	 * @param layeredPane Layered pane
 	 * @param resultsHandler Results handler function (used to update text;
 	 *   if null, includes text display box)
 	 */
-	public ExamplePanel(JLayeredPane layeredPane, ResultReporter.Handler resultsHandler)
+	public ExamplePanel(InputStream databaseStream, JLayeredPane layeredPane,
+		ResultReporter.Handler resultsHandler)
 	{
 		super(new BorderLayout(4, 4));
 		setOpaque(false);
 		
 		try
 		{
-			list = new KanjiList(
-				KanjiList.class.getResourceAsStream("strokes-20100823.xml"));
+			list = new KanjiList(databaseStream);
 		}
 		catch(IOException e)
 		{

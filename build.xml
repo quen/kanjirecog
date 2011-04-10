@@ -33,6 +33,12 @@
 		  	<exclude name="**/*.java" />
 		  </fileset>
 		</copy>
+		<copy todir="${build}/classes/com/leafdigital/kanji">
+		  <fileset dir="data">
+		  	<include name="strokes-20100823.xml" />
+		  </fileset>
+		</copy>
+		
 	</target>
 
 	<!-- Build jar file -->
