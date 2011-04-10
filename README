@@ -57,18 +57,8 @@ look at the source for the example applet, although it's a bit of a mess.
 Android version
 ---------------
 
-TODO Android version does not exist yet. Please wait.
-
-This library includes an Android component in the 'android' source folder.
-At present the easiest way to build this is as follows:
-
-* Install the standard jar file into your Android project:
-  <instructions on how to do this, to follow>
-  
-* Copy the source package from the 'android' folder into the 'src' folder
-  of an Android project.
-  
-TODO: Can provide a single Android jar?
+An Android app based on this library is included in this repository in
+the branch 'android'.
 
 
 Repository information
