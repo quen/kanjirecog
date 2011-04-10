@@ -165,6 +165,26 @@ public class KanjiList
 	}
 
 	/**
+	 * @param search Kanji to find
+	 * @return Info for that kanji
+	 * @throws IllegalArgumentException If kanji does not exist in list
+	 */
+	public synchronized KanjiInfo find(String search)
+	{
+		for(List<KanjiInfo> list : kanji.values())
+		{
+			for(KanjiInfo info : list)
+			{
+				if(info.getKanji().equals(search))
+				{
+					return info;
+				}
+			}
+		}
+		throw new IllegalArgumentException("Kanji '" + search + "' not found");
+	}
+
+	/**
 	 * Searches for closest matches.
 	 * @param compare Kanji to compare
 	 * @param algo Match algorithm to use
