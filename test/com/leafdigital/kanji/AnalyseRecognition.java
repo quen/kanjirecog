@@ -64,7 +64,8 @@ public class AnalyseRecognition
 
 	/**
 	 * @param args Command-line arguments; first one must be db password, second
-	 *   is optional conditions for use in WHERE clause
+	 *   is optional conditions for use in WHERE clause, third is optional
+	 *   match algorithm (otherwise all are run)
 	 * @throws Exception Any error
 	 */
 	public static void main(String[] args) throws Exception
@@ -83,15 +84,23 @@ public class AnalyseRecognition
 			}
 		}
 
-		new AnalyseRecognition().run(args[0], where);
+		MatchAlgorithm algo = null;
+		if(args.length > 2)
+		{
+			algo = MatchAlgorithm.valueOf(args[2]);
+		}
+
+		new AnalyseRecognition().run(args[0], where, algo);
 	}
 
 	/**
 	 * @param password Password
 	 * @param where Optional where clause (null if none), not including "WHERE"
+	 * @param soloAlgo Match algorithm or null for all
 	 * @throws Exception Any error
 	 */
-	private void run(String password, String where) throws Exception
+	private void run(String password, String where, MatchAlgorithm soloAlgo)
+		throws Exception
 	{
 		// Get database connection
 		Class.forName("org.postgresql.Driver");
@@ -123,7 +132,7 @@ public class AnalyseRecognition
 			// Loop through all results
 			while(rs.next())
 			{
-				process(rs.getString("drawing"), rs.getString("kanji"));
+				process(rs.getString("drawing"), rs.getString("kanji"), soloAlgo);
 			}
 
 			// Handle result when finihed
@@ -231,6 +240,8 @@ public class AnalyseRecognition
 				if(ranking.getKey() > max)
 				{
 					maxPlus += ranking.getValue();
+					// Count all fails as rank 50
+					totalRanking += 50 * ranking.getValue();
 				}
 				else
 				{
@@ -244,7 +255,7 @@ public class AnalyseRecognition
 			double averageRanking = (double)totalRanking / (total - failures);
 			System.out.println();
 			System.out.println(String.format(
-				"Summary: avg ranking %.2f / fail %.1f%%",
+				"Weighted average ranking %.2f (including %.1f%% failures at rank 50)",
 				averageRanking, 100.0 * (double)maxPlus / (double)total));
 		}
 
@@ -283,9 +294,11 @@ public class AnalyseRecognition
 	 * Processes a single kanji drawing.
 	 * @param drawing Drawing
 	 * @param kanji Resulting selected kanji
+	 * @param soloAlgo Match algorithm or null for all
 	 * @throws InterruptedException Probably shouldn't really happen
 	 */
-	private synchronized void process(final String drawing, final String kanji)
+	private synchronized void process(final String drawing, final String kanji,
+		final MatchAlgorithm soloAlgo)
 		throws InterruptedException
 	{
 		while(added > processed + MAX_QUEUE_SIZE)
@@ -308,7 +321,8 @@ public class AnalyseRecognition
 				MatchAlgorithm[] algorithms;
 				if(actualStrokes == drawingInfo.getStrokeCount())
 				{
-					algorithms = new MatchAlgorithm[] { MatchAlgorithm.STRICT, MatchAlgorithm.FUZZY };
+					algorithms = new MatchAlgorithm[] { MatchAlgorithm.STRICT,
+						MatchAlgorithm.FUZZY };
 				}
 				else if(Math.abs(actualStrokes - drawingInfo.getStrokeCount()) == 1)
 				{
@@ -326,7 +340,10 @@ public class AnalyseRecognition
 				// Process for each algorithm
 				for(MatchAlgorithm algo : algorithms)
 				{
-					process(drawingInfo, algo);
+					if(soloAlgo == null || soloAlgo == algo)
+					{
+						process(drawingInfo, algo);
+					}
 				}
 
 				synchronized(AnalyseRecognition.this)
