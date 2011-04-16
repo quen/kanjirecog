@@ -48,8 +48,12 @@ license. The original version of this database from the KanjiVG project is in
 the 'data' folder.
 
 As required by this license, the derived database (only) is also available
-under the Creative Commons Attribution-Share Alike 3.0 license (in addition
-to GPL v3). The derived database can be found in the src/com/leafdigital/kanji
+under the Creative Commons Attribution-Share Alike 3.0 license.
+The derived database can be found in the src/com/leafdigital/kanji
 folder, as strokes-<date>.xml.
 
 KanjiVG home page is: http://kanjivg.tagaini.net/
+
+
+In the Android app, two icons from the standard platform are included
+(ic_menu_*.png).

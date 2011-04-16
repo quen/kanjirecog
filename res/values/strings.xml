@@ -1,22 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="drawkanji">Add kanji</string>
-    <string name="copy">Copy and clear</string>
-    <string name="app_name">Kanji draw</string>
-    <string name="undo">Undo</string>
-    <string name="clear">Clear</string>
-    <string name="strokes">Strokes</string>
-    <string name="done">Done</string>
-    <string name="fuzzy">Inexact matches</string>
-    <string name="waitexact">Finding exact matches...</string>
-    <string name="pickexact">Exact matches (# strokes)</string>
-    <string name="pickexact1">Exact matches (1 stroke)</string>
-    <string name="waitfuzzy">Finding inexact matches...</string>
-    <string name="pickfuzzy">Inexact matches (# strokes)</string>
-    <string name="pickfuzzy1">Inexact matches (1 stroke)</string>
-    <string name="more">More</string>
-    <string name="plusminus1">Inexact matches (± 1 stroke)</string>
-    <string name="pickfuzzypm1">Inexact matches (# strokes ± 1)</string>
-    <string name="pickfuzzy1pm1">Inexact matches (2 strokes)</string>
-    <string name="giveup">Give up</string>
+	<string name="app_name">Kanji draw</string>
+
+	<string name="drawkanji">Add kanji</string>
+	<string name="copy">Copy and close</string>
+	<string name="explanation">After you copy the kanji, long-press any text
+		field in any app and choose Paste to enter the kanji.</string>
+	<string name="menuhint">Press MENU key for settings.</string>
+	<string name="copyright">leafdigital Kanji draw &#169; 2011 Samuel Marshall</string>
+
+	<string name="undo">Undo</string>
+	<string name="clear">Clear</string>
+	<string name="strokes">Strokes</string>
+	<string name="done">Done</string>
+	<string name="fuzzy">Inexact matches</string>
+	<string name="waitexact">Finding exact matches...</string>
+	<string name="pickexact">Exact matches (# strokes)</string>
+	<string name="pickexact1">Exact matches (1 stroke)</string>
+	<string name="waitfuzzy">Finding inexact matches...</string>
+	<string name="pickfuzzy">Inexact matches (# strokes)</string>
+	<string name="pickfuzzy1">Inexact matches (1 stroke)</string>
+	<string name="more">More</string>
+	<string name="plusminus1">Inexact matches (± 1 stroke)</string>
+	<string name="pickfuzzypm1">Inexact matches (# strokes ± 1)</string>
+	<string name="pickfuzzy1pm1">Inexact matches (2 strokes)</string>
+	<string name="giveup">Give up</string>
+	<string name="settings">Settings</string>
+	<string name="quit">Quit</string>
+
+	<string name="notification">Fast access icon</string>
+	<string name="shownotification">Show icon in top bar</string>
+	<string name="shownotification_on">Icon in top bar lets you enter kanji quickly within another application.</string>
+	<string name="shownotification_off">Icon is not displayed in top bar. Start app manually to enter kanji.</string>
+	<string name="startwithsystem">Start with phone</string>
+	<string name="startwithsystem_on">Automatically loaded on startup so the icon is always available.</string>
+	<string name="startwithsystem_off">Icon does not appear until you first start the app.</string>
+	<string name="preferencestitle">Kanji draw preferences</string>
+
+	<string name="notificationtitle">Draw kanji</string>
+	<string name="notificationtext">Select to draw kanji characters</string>
 </resources>

@@ -1,0 +1,21 @@
+<PreferenceScreen
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	
+<PreferenceCategory android:title="@string/notification">
+	<CheckBoxPreference
+		android:key="shownotification"
+		android:title="@string/shownotification"
+		android:summaryOff="@string/shownotification_off"
+		android:summaryOn="@string/shownotification_on"
+		android:disableDependentsState="false"
+		/>
+	<CheckBoxPreference
+		android:key="startwithsystem"
+		android:title="@string/startwithsystem"
+		android:summaryOff="@string/startwithsystem_off"
+		android:summaryOn="@string/startwithsystem_on"
+		android:dependency="shownotification"
+		/>
+</PreferenceCategory>
+
+</PreferenceScreen>

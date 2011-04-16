@@ -5,32 +5,64 @@
     android:layout_height="fill_parent"
     >
 	
-<LinearLayout
-	android:orientation="horizontal"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-	>
 	<EditText
 		android:id="@+id/editresult"
 		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
-		android:textSize="40dp"
-	    android:layout_weight="1"
-		/>
-	<Button
-		android:id="@+id/drawkanji" 
-		android:text="@string/drawkanji"
-		android:layout_width="wrap_content"
-		android:layout_height="fill_parent"
-		/>
-</LinearLayout>	
-	
-	<Button
-		android:id="@+id/copy" 
-		android:text="@string/copy"
-		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:enabled="false"
+		android:textSize="40dp"
+		/>
+
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		>
+		<Button
+			android:id="@+id/drawkanji"
+			android:text="@string/drawkanji"
+			android:layout_width="0px"
+			android:layout_height="fill_parent"
+			android:layout_weight="1"
+			android:paddingTop="20dp"
+			android:paddingBottom="20dp"
+			/>
+
+		<Button
+			android:id="@+id/copy"
+			android:text="@string/copy"
+			android:layout_width="0px"
+			android:layout_height="fill_parent"
+			android:enabled="false"
+			android:layout_weight="1"
+			android:paddingTop="20dp"
+			android:paddingBottom="20dp"
+			/>
+	</LinearLayout>
+
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/explanation"
+		android:paddingLeft="10dp"
+		android:paddingRight="10dp"
+		/>
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/menuhint"
+		android:paddingLeft="10dp"
+		android:paddingRight="10dp"
+		android:paddingTop="5dp"
+		/>
+
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/copyright"
+		android:gravity="bottom"
+		android:layout_weight="1"
+		android:paddingLeft="10dp"
+		android:paddingRight="10dp"
+		android:textSize="12dp"
 		/>
 
 </LinearLayout>

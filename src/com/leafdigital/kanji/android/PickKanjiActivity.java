@@ -36,7 +36,7 @@ import com.leafdigital.kanji.android.KanjiDrawing.DrawnStroke;
 
 import static com.leafdigital.kanji.android.TopResultsActivity.*;
 
-public class PickKanjiActivity extends Activity
+public class PickKanjiActivity extends KanjiActivity
 {
 	private KanjiDrawing drawing;
 
@@ -206,6 +206,10 @@ public class PickKanjiActivity extends Activity
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
+		if(checkQuit(data))
+		{
+			return;
+		}
 		if(resultCode != RESULT_OK || data == null)
 		{
 			return;

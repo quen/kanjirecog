@@ -20,7 +20,6 @@ package com.leafdigital.kanji.android;
 
 import java.util.*;
 
-import android.app.Activity;
 import android.content.*;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
@@ -31,7 +30,7 @@ import android.widget.Button;
 import com.leafdigital.kanji.*;
 import com.leafdigital.kanji.android.KanjiDrawing.DrawnStroke;
 
-public class TopResultsActivity extends Activity
+public class TopResultsActivity extends KanjiActivity
 {
 	/**
 	 * Intent key that should contain an int from R.strings with the activity
@@ -191,6 +190,10 @@ public class TopResultsActivity extends Activity
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
+		if(checkQuit(data))
+		{
+			return;
+		}
 		if(resultCode == RESULT_OK)
 		{
 			setResult(RESULT_OK, data);

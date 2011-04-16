@@ -18,16 +18,21 @@ Copyright 2011 Samuel Marshall.
 */
 package com.leafdigital.kanji.android;
 
-import android.app.Activity;
-import android.content.Intent;
+import android.content.*;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
 import android.view.*;
 import android.view.View.OnClickListener;
 import android.widget.*;
 
-public class MainActivity extends Activity
+public class MainActivity extends KanjiActivity
+	implements SharedPreferences.OnSharedPreferenceChangeListener
 {
+	private static final String PREF_SHOWNAVIGATION = "shownotification";
+	private static final String PREF_STARTWITHSYSTEM = "startwithsystem";
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -57,16 +62,69 @@ public class MainActivity extends Activity
 				clipboard.setText(edit.getText().toString());
 				edit.setText("");
 				findViewById(R.id.copy).setEnabled(false);
+				finish();
 			}
 		});
 
 		onClickListener.onClick(null);
 
+		SharedPreferences prefs =
+			PreferenceManager.getDefaultSharedPreferences(this);
+		prefs.registerOnSharedPreferenceChangeListener(this);
+		onSharedPreferenceChanged(prefs, PREF_SHOWNAVIGATION);
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		PreferenceManager.getDefaultSharedPreferences(this).
+			unregisterOnSharedPreferenceChangeListener(this);
+		super.onDestroy();
+	}
+
+	@Override
+	protected void quit()
+	{
+		Intent serviceIntent = new Intent(this, IconService.class);
+		stopService(serviceIntent);
+		super.quit();
+	}
+
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+		String key)
+	{
+		if(key.equals(PREF_SHOWNAVIGATION))
+		{
+			boolean show = sharedPreferences.getBoolean(PREF_SHOWNAVIGATION, false);
+			Intent serviceIntent = new Intent(this, IconService.class);
+			if(show)
+			{
+				startService(serviceIntent);
+			}
+			else
+			{
+				stopService(serviceIntent);
+			}
+		}
+		else if(key.equals(PREF_STARTWITHSYSTEM))
+		{
+			int flag = sharedPreferences.getBoolean(PREF_STARTWITHSYSTEM, false)
+				? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+				: PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+			ComponentName component = new ComponentName(this, StartupReceiver.class);
+			getPackageManager().setComponentEnabledSetting(component, flag,
+				PackageManager.DONT_KILL_APP);
+		}
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
+		if(checkQuit(data))
+		{
+			return;
+		}
 		if(resultCode == RESULT_OK)
 		{
 			String kanji = data.getStringExtra(PickKanjiActivity.EXTRA_KANJI);
