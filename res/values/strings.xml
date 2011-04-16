@@ -37,6 +37,11 @@
 	<string name="startwithsystem_off">Icon does not appear until you first start the app.</string>
 	<string name="preferencestitle">Kanji draw preferences</string>
 
+	<string name="privacy">Privacy</string>
+	<string name="reportstats">Report drawing data</string>
+	<string name="reportstats_on">If network is available, drawing data is sent (for future improvements).</string>
+	<string name="reportstats_off">No information is ever reported to the developer.</string>
+
 	<string name="notificationtitle">Draw kanji</string>
 	<string name="notificationtext">Select to draw kanji characters</string>
 </resources>

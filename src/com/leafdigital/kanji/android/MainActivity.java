@@ -32,6 +32,10 @@ public class MainActivity extends KanjiActivity
 {
 	private static final String PREF_SHOWNAVIGATION = "shownotification";
 	private static final String PREF_STARTWITHSYSTEM = "startwithsystem";
+	/**
+	 * If true, reports stats
+	 */
+	public static final String PREF_REPORTSTATS = "reportstats";
 
 	/** Called when the activity is first created. */
 	@Override
@@ -72,6 +76,12 @@ public class MainActivity extends KanjiActivity
 			PreferenceManager.getDefaultSharedPreferences(this);
 		prefs.registerOnSharedPreferenceChangeListener(this);
 		onSharedPreferenceChanged(prefs, PREF_SHOWNAVIGATION);
+
+		// If there's no pref for stats-reporting, set it on
+		if(!prefs.contains(PREF_REPORTSTATS))
+		{
+			prefs.edit().putBoolean(PREF_REPORTSTATS, true).commit();
+		}
 	}
 
 	@Override

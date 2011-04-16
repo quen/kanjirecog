@@ -23,6 +23,7 @@ import java.util.*;
 import android.content.*;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.*;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -139,15 +140,22 @@ public class TopResultsActivity extends KanjiActivity
 					{
 						setResult(RESULT_OK, data);
 
-						// If the user has a network connection, send stats
-						ConnectivityManager cm = (ConnectivityManager) getSystemService(
-							Context.CONNECTIVITY_SERVICE);
-						if(cm != null && cm.getActiveNetworkInfo() != null
-							&& cm.getActiveNetworkInfo().isConnected())
+						// If selected, report stats
+						SharedPreferences prefs =
+							PreferenceManager.getDefaultSharedPreferences(
+								TopResultsActivity.this);
+						if(prefs.getBoolean(MainActivity.PREF_REPORTSTATS, false))
 						{
-							StatsReporter.phoneHome(PickKanjiActivity.getKanjiInfo(strokes),
-								data.getStringExtra(PickKanjiActivity.EXTRA_KANJI),
-								algo, ranking, "leafdigital Kanji Draw 0.8", null);
+							// If the user has a network connection, send stats
+							ConnectivityManager cm = (ConnectivityManager) getSystemService(
+								Context.CONNECTIVITY_SERVICE);
+							if(cm != null && cm.getActiveNetworkInfo() != null
+								&& cm.getActiveNetworkInfo().isConnected())
+							{
+								StatsReporter.phoneHome(PickKanjiActivity.getKanjiInfo(strokes),
+									data.getStringExtra(PickKanjiActivity.EXTRA_KANJI),
+									algo, ranking, "leafdigital Kanji Draw 0.8", null);
+							}
 						}
 
 						finish();
