@@ -23,16 +23,16 @@ import java.net.*;
 
 import com.leafdigital.kanji.KanjiInfo.MatchAlgorithm;
 
-/** 
+/**
  * Used for reporting information about how the kanji was drawn to the
  * leafdigital server so that we can use it for statistical information
  * to improve the service in future.
  */
 public abstract class StatsReporter
 {
-	private static final String baseUrl = 
+	private static final String baseUrl =
 		"http://live.leafdigital.com/kanji/report.jsp";
-	
+
 	/**
 	 * Interface you can implement if you want to get information about the
 	 * phone-home process.
@@ -43,14 +43,14 @@ public abstract class StatsReporter
 		 * Called when phone-home is starting.
 		 */
 		public void phoneHomeStart();
-		
+
 		/**
 		 * Called when phone-home ends.
 		 * @param ok True if it was successful
 		 */
 		public void phoneHomeEnd(boolean ok);
 	}
-	
+
 	/**
 	 * Phones home with information about the kanji match.
 	 * @param drawn Drawn kanji (should include the strokes that the user drew;
@@ -78,12 +78,12 @@ public abstract class StatsReporter
 			throw new Error(e);
 		}
 	}
-	
+
 	private static class SendThread extends Thread
 	{
 		private Callback callback;
 		private String url, post;
-		
+
 		private SendThread(String url, String post, Callback callback)
 		{
 			this.url = url;
@@ -95,7 +95,7 @@ public abstract class StatsReporter
 			}
 			start();
 		}
-		
+
 		@Override
 		public void run()
 		{
@@ -112,7 +112,7 @@ public abstract class StatsReporter
 				OutputStream outputStream = conn.getOutputStream();
 				outputStream.write(post.getBytes("UTF-8"));
 				outputStream.close();
-				
+
 				InputStream input;
 				try
 				{
@@ -122,38 +122,26 @@ public abstract class StatsReporter
 				{
 					input = conn.getErrorStream();
 				}
-				BufferedReader reader = new BufferedReader(
-					new InputStreamReader(input, "UTF-8"));
-				
-				String firstLine = reader.readLine();
-				if(firstLine == null)
+				if(input != null)
 				{
-					System.err.println("Empty response");
-				}
-				else if(firstLine.equals("OK"))
-				{
-					ok = true;
-				}
-				else
-				{
-					System.err.println(firstLine);
-					while(true)
+					BufferedReader reader = new BufferedReader(
+						new InputStreamReader(input, "UTF-8"));
+
+					String firstLine = reader.readLine();
+					if(firstLine == null)
 					{
-						String line = reader.readLine();
-						if(line == null)
-						{
-							break;
-						}
-						System.err.println(line);
+						// Empty response
 					}
+					else if(firstLine.equals("OK"))
+					{
+						ok = true;
+					}
+
+					reader.close();
 				}
-				
-				reader.close();
 			}
 			catch(IOException e)
 			{
-				System.err.println("Failed to connect");
-				e.printStackTrace();
 			}
 			finally
 			{
