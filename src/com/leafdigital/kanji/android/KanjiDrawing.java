@@ -306,6 +306,7 @@ public class KanjiDrawing extends View
 		Paint erase = new Paint();
 		erase.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 		bitmapCanvas.drawPaint(erase);
+		System.gc();
 		invalidate();
 		updateListener();
 	}

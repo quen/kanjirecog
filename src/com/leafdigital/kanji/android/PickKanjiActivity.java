@@ -130,6 +130,14 @@ public class PickKanjiActivity extends KanjiActivity
 		});
 	}
 
+	@Override
+	public void finish()
+	{
+		// This is not strictly needed, but causes it to free memory
+		drawing.clear();
+		super.finish();
+	}
+
 	/**
 	 * Called once the kanji list has been loaded so that it enables the button
 	 * if needed.
