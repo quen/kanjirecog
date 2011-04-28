@@ -18,18 +18,18 @@ Copyright 2011 Samuel Marshall.
 */
 package com.leafdigital.kanji;
 
-/** 
+/**
  * Single kanji stroke as represented in floating-point numbers.
  * <p>
- * This class has two main functions: first, to represent strokes loaded from 
- * the KanjiVG file as SVG paths, and second, to represent strokes being drawn 
- * by user input. These need to be stored as float values so that they can be 
+ * This class has two main functions: first, to represent strokes loaded from
+ * the KanjiVG file as SVG paths, and second, to represent strokes being drawn
+ * by user input. These need to be stored as float values so that they can be
  * scaled later when all strokes are available.
  */
 public class InputStroke
 {
 	private float startX, startY, endX, endY;
-	
+
 	/**
 	 * Class to make it easier to read path data.
 	 */
@@ -42,7 +42,7 @@ public class InputStroke
 		{
 			this.remaining = path;
 		}
-		
+
 		/**
 		 * Reads the next non-whitespace character.
 		 * @return Character or EOL if end of string or NUMBER if number/comma not letter
@@ -69,7 +69,7 @@ public class InputStroke
 				pos++;
 			}
 		}
-		
+
 		/**
 		 * Reads the next number, skipping whitespace and comma and +
 		 * @return Number
@@ -91,7 +91,7 @@ public class InputStroke
 				}
 				start++;
 			}
-			
+
 			int end = start + 1;
 			while(true)
 			{
@@ -106,10 +106,10 @@ public class InputStroke
 				}
 				end++;
 			}
-			
+
 			String number = remaining.substring(start, end);
 			remaining = remaining.substring(end);
-			
+
 			try
 			{
 				return Float.parseFloat(number);
@@ -119,9 +119,9 @@ public class InputStroke
 				throw new IllegalArgumentException("Invalid number: " + number);
 			}
 		}
-		
+
 	}
-	
+
 	/**
 	 * Constructs from an SVG path. The full SVG path sequence is not accepted.
 	 * Instead all paths must begin with a single M or m followed by commands from
@@ -139,12 +139,12 @@ public class InputStroke
 		{
 			throw new IllegalArgumentException("Path must start with M");
 		}
-		
+
 		// Read start co-ordinates (note: 'm' is not really relative at start
 		// of path, so treated the same as M; see SVG spec)
 		startX = data.readNumber();
 		startY = data.readNumber();
-		
+
 		// Handle all other commands
 		float x = startX, y = startY;
 		int lastCommand = -1;
@@ -165,7 +165,7 @@ public class InputStroke
 			}
 			switch(command)
 			{
-			case PathData.EOL : 
+			case PathData.EOL :
 				break loop; // End of line
 			case 'c' :
 				data.readNumber();
@@ -175,7 +175,7 @@ public class InputStroke
 				x += data.readNumber();
 				y += data.readNumber();
 				break;
-			case 'C' : 
+			case 'C' :
 				data.readNumber();
 				data.readNumber();
 				data.readNumber();
@@ -201,15 +201,15 @@ public class InputStroke
 				y = startY;
 				break;
 			default :
-				throw new IllegalArgumentException("Unexpected path command: " 
+				throw new IllegalArgumentException("Unexpected path command: "
 					+	(char)command);
 			}
 		}
-		
+
 		endX = x;
 		endY = y;
 	}
-	
+
 	/**
 	 * Constructs from raw data.
 	 * @param startX Start position (x) 0-1
@@ -224,39 +224,39 @@ public class InputStroke
 		this.startY = startY;
 		this.endY = endY;
 	}
-	
-	/** 
+
+	/**
 	 * @return Start X position
 	 */
 	public float getStartX()
 	{
 		return startX;
 	}
-	
-	/** 
-	 * @return End X position 
+
+	/**
+	 * @return End X position
 	 */
 	public float getEndX()
 	{
 		return endX;
 	}
-	
-	/** 
+
+	/**
 	 * @return Start Y position
 	 */
 	public float getStartY()
 	{
 		return startY;
 	}
-	
-	/** 
+
+	/**
 	 * @return End Y position
 	 */
 	public float getEndY()
 	{
 		return endY;
 	}
-	
+
 	/**
 	 * Normalises an array of strokes by converting their co-ordinates to range
 	 * from 0 to 1 in each direction. If the stroke bounding rectangle
@@ -270,7 +270,7 @@ public class InputStroke
 	public static Stroke[] normalise(InputStroke[] strokes)
 	{
 		// Find range
-		float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, 
+		float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE,
 			maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
 		for(InputStroke stroke : strokes)
 		{
@@ -290,7 +290,7 @@ public class InputStroke
 			{
 				maxY = stroke.startY;
 			}
-			
+
 			if(stroke.endX < minX)
 			{
 				minX = stroke.endX;
@@ -308,7 +308,7 @@ public class InputStroke
 				maxY = stroke.endY;
 			}
 		}
-		
+
 		// Adjust max/min to avoid divide by zero
 		if(abs(minX - maxX) < 0.0000000001f)
 		{
@@ -329,11 +329,11 @@ public class InputStroke
 			{
 				adjust = 0.1f;
 			}
-			
+
 			minY -= adjust;
 			maxY += adjust;
 		}
-		
+
 		// Now sort out a maximum scale factor, so that very long/thin kanji
 		// don't get stretched to square
 		float xRange = abs(minX - maxX), yRange = abs(minY - maxY);
@@ -349,7 +349,7 @@ public class InputStroke
 			minX -= adjust;
 			maxX += adjust;
 		}
-		
+
 		// Convert all points according to range
 		Stroke[] output = new Stroke[strokes.length];
 		for(int i=0; i<strokes.length; i++)
@@ -360,15 +360,15 @@ public class InputStroke
 				(strokes[i].endX - minX) / (maxX - minX),
 				(strokes[i].endY - minY) / (maxY - minY));
 		}
-		
+
 		return output;
 	}
-	
-	private static float abs(float value)	
-	{	
+
+	private static float abs(float value)
+	{
 		return value < 0 ? -value : value;
 	}
-	
+
 	@Override
 	public String toString()
 	{

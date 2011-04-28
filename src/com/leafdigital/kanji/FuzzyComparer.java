@@ -21,11 +21,11 @@ package com.leafdigital.kanji;
 /**
  * Compares entered strokes with other kanji using slightly fuzzy logic.
  */
-public class FuzzyComparer
+public class FuzzyComparer implements KanjiComparer
 {
 	private Pair[] drawnPairs;
 	private Point[] drawnPoints;
-	
+
 	private final static float SCOREMULTI_NOT_PAIR = 0.9f;
 	private final static float SCOREMULTI_WRONG_DIRECTION = 0.97f;
 
@@ -34,21 +34,21 @@ public class FuzzyComparer
 	private static class Pair
 	{
 		private Point a, b;
-		
+
 		private int pointCount;
-		
+
 		private float[][] scores;
 		private float maxBScore, maxAScore;
-		
+
 		private float bestScore;
 		private int bestAIndex, bestBIndex;
-		
+
 		private Pair(Point a, Point b)
 		{
 			this.a = a;
 			this.b = b;
 		}
-		
+
 		void initDrawn(int maxStrokes)
 		{
 			scores = new float[maxStrokes * 2][];
@@ -59,13 +59,13 @@ public class FuzzyComparer
 			a.initDrawn(maxStrokes);
 			b.initDrawn(maxStrokes);
 		}
-		
+
 		private void score(Point[] availablePoints)
 		{
 			pointCount = availablePoints.length;
 			maxBScore = -1;
 			maxAScore = -1;
-			
+
 			// Get max B score
 			for(int bIndex=0; bIndex < pointCount; bIndex++)
 			{
@@ -75,7 +75,7 @@ public class FuzzyComparer
 					maxBScore = bScore;
 				}
 			}
-			
+
 			for(int aIndex=0; aIndex < pointCount; aIndex++)
 			{
 				// Track max A score
@@ -86,16 +86,16 @@ public class FuzzyComparer
 				}
 				Pair aPair = availablePoints[aIndex].pair;
 				boolean wrongDirection = aPair.a != availablePoints[aIndex];
-				
+
 				for(int bIndex=0; bIndex < pointCount; bIndex++)
 				{
 					int bScore = b.score[bIndex];
-					
+
 					if(bIndex==aIndex)
 					{
 						continue;
 					}
-					
+
 					// Basic score is sum of individual scores
 					float score = aScore + bScore;
 
@@ -106,15 +106,15 @@ public class FuzzyComparer
 					else if(wrongDirection)
 					{
 						score *= SCOREMULTI_WRONG_DIRECTION;
-					}					
-					
+					}
+
 					scores[aIndex][bIndex] = score;
 				}
 			}
-			
+
 			bestScore = -1f;
 		}
-		
+
 		private void scoreAvailable(Point[] otherPoints, float mustBeOver)
 		{
 			// If it hasn't changed since last time, do nothing
@@ -128,7 +128,7 @@ public class FuzzyComparer
 			{
 				return;
 			}
-			
+
 			// Consider all combinations of point A and B
 			bestScore = -1f;
 //			int loopCount = 0;
@@ -136,14 +136,14 @@ public class FuzzyComparer
 			{
 				ScoreAndIndex aScore = a.sortedScore[aIndex];
 				int aPointIndex = aScore.index;
-				if(aScore.score + maxBScore < mustBeOver 
+				if(aScore.score + maxBScore < mustBeOver
 					|| otherPoints[aPointIndex] == null)
 				{
 					// If A score + any B score can't beat min score, then continue, or
 					// also if point is done
 					continue;
 				}
-				
+
 				float[] correspondingScores = scores[aPointIndex];
 				for(int bIndex=0; bIndex < pointCount; bIndex++)
 				{
@@ -153,19 +153,19 @@ public class FuzzyComparer
 					{
 						continue;
 					}
-					
+
 //					loopCount++;
-					
+
 					// Basic score is sum of individual scores
 					float score = correspondingScores[bPointIndex];
-					
+
 					// Is this best?
 					if(score > bestScore)
 					{
 						bestScore = score;
 						bestAIndex = aPointIndex;
 						bestBIndex = bPointIndex;
-						
+
 						if(bestScore > mustBeOver)
 						{
 							mustBeOver = bestScore;
@@ -173,12 +173,12 @@ public class FuzzyComparer
 					}
 				}
 			}
-			
+
 //			System.err.println(loopCount + "/" + (pointCount * pointCount));
-			
+
 		}
 	}
-	
+
 	private static class ScoreAndIndex implements Comparable<ScoreAndIndex>
 	{
 		int score, index;
@@ -200,7 +200,7 @@ public class FuzzyComparer
 				return index - o.index;
 			}
 		}
-		
+
 		@Override
 		public String toString()
 		{
@@ -211,27 +211,27 @@ public class FuzzyComparer
 	private static class Point
 	{
 		private final static int SIMILAR_RANGE = 13;
-		
+
 		private int x, y;
 		private int xLess, xMore, xSimilar, yLess, yMore, ySimilar;
-		
+
 		private Pair pair;
-		
+
 		private int[] score;
 		private ScoreAndIndex[] sortedScore, preSortedScore;
 		private int[] best = new int[BEST_SCORES_SORT_FIRST];
-		
+
 		private Point(int x, int y)
 		{
 			this.x = (int) ((x + 0.5f) * 255);
 			this.y = (int) ((y + 0.5f) * 255);
 		}
-		
+
 		private void setPair(Pair pair)
 		{
 			this.pair = pair;
 		}
-		
+
 		private void count(Point[] allPoints)
 		{
 			for(Point point : allPoints)
@@ -266,7 +266,7 @@ public class FuzzyComparer
 				}
 			}
 		}
-		
+
 		private void initDrawn(int maxStrokes)
 		{
 			// Initialise the array only once per drawn character
@@ -280,8 +280,8 @@ public class FuzzyComparer
 			// Dummy score to use for 'best' marker
 			preSortedScore[maxStrokes * 2] = new ScoreAndIndex();
 		}
-		
-		
+
+
 		private void score(Point[] otherPoints, int maxScore)
 		{
 			for(int i=0; i<BEST_SCORES_SORT_FIRST; i++)
@@ -292,19 +292,19 @@ public class FuzzyComparer
 			for(int i=0; i<otherPoints.length; i++)
 			{
 				Point other = otherPoints[i];
-				
+
 				// Work out difference between each element of these points
-				int difference = Math.abs(xLess - other.xLess) 
+				int difference = Math.abs(xLess - other.xLess)
 					+ Math.abs(xMore - other.xMore) + Math.abs(xSimilar - other.xSimilar)
 					+ Math.abs(yLess - other.yLess) + Math.abs(yMore - other.yMore)
 					+ Math.abs(ySimilar - other.ySimilar);
-				
+
 				int thisScore = maxScore - difference;
 				preSortedScore[i].index = i;
 				preSortedScore[i].score = thisScore;
 				preSortedScore[i].used = false;
 				score[i] = thisScore;
-				
+
 				if(thisScore >= worstBestScore)
 				{
 					int bestIndex=0;
@@ -326,13 +326,13 @@ public class FuzzyComparer
 					}
 				}
 			}
-			
+
 			for(int i=0; i<BEST_SCORES_SORT_FIRST; i++)
 			{
 				sortedScore[i] = preSortedScore[best[i]];
 				preSortedScore[best[i]].used = true;
 			}
-			
+
 			int index = BEST_SCORES_SORT_FIRST;
 			for(int i=0; i<otherPoints.length; i++)
 			{
@@ -342,7 +342,7 @@ public class FuzzyComparer
 				}
 			}
 //			System.err.println(Arrays.toString(sortedScore));
-			
+
 //			for(int i=otherPoints.length; i<sortedScore.length; i++)
 //			{
 //				sortedScore[i] = new ScoreAndIndex(0, i);
@@ -352,12 +352,13 @@ public class FuzzyComparer
 //			Arrays.sort(sortedScore);
 		}
 	}
-	
+
 	/**
 	 * Construct comparer for a particular drawn kanji.
 	 * @param drawn Drawn kanji
 	 */
-	public FuzzyComparer(KanjiInfo drawn)
+	@Override
+	public void init(KanjiInfo drawn)
 	{
 		// Set up data about drawn pairs/points
 		drawnPairs = convertKanjiInfo(drawn);
@@ -367,7 +368,7 @@ public class FuzzyComparer
 			pair.initDrawn(drawnPairs.length + 2);
 		}
 	}
-	
+
 	private static Pair[] convertKanjiInfo(KanjiInfo info)
 	{
 		Pair[] result = new Pair[info.getStrokeCount()];
@@ -385,7 +386,7 @@ public class FuzzyComparer
 		}
 		return result;
 	}
-	
+
 	private static Point[] getPairPoints(Pair[] pairs)
 	{
 		Point[] result = new Point[pairs.length * 2];
@@ -401,43 +402,44 @@ public class FuzzyComparer
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Compares against the given other kanji.
 	 * @param other Other kanji
 	 * @return Score in range 0 to 100
 	 */
+	@Override
 	public float getMatchScore(KanjiInfo other)
 	{
 		// Get data from match kanji
 		Pair[] otherPairs = convertKanjiInfo(other);
 		Point[] otherPoints = getPairPoints(otherPairs);
-		
+
 		// Max difference is (less than) the highest number of strokes *
 		// 6 facets.
 		int maxScore = Math.max(drawnPoints.length, otherPoints.length) * 6;
-		
+
 		// Score all points against all points; O(points^2)
 		for(Point point : drawnPoints)
 		{
 			point.score(otherPoints, maxScore);
 		}
-		
-		// Score all pairs 
+
+		// Score all pairs
 		for(Pair pair : drawnPairs)
 		{
 			pair.score(otherPoints);
 		}
-		
+
 		// Copy source pairs into list of remaining ones
 		Pair[] remainingPairs = new Pair[drawnPairs.length];
 		System.arraycopy(drawnPairs, 0, remainingPairs, 0, remainingPairs.length);
-		
+
 		// How many remaining things to match?
 		int pairsLeft = remainingPairs.length;
 		int pointsLeft = otherPoints.length;
 		float totalScore = 0f;
-		
+
 		while(pointsLeft > 0 && pairsLeft > 0)
 		{
 			// Score all pairs to find best match
@@ -459,7 +461,7 @@ public class FuzzyComparer
 					bestPairScore = pair.bestScore;
 				}
 			}
-			
+
 			// Eat that pair and its points, and add to total score
 			remainingPairs[bestPairIndex] = null;
 			int aIndex = bestPair.bestAIndex, bIndex = bestPair.bestBIndex;
@@ -469,10 +471,10 @@ public class FuzzyComparer
 			pairsLeft--;
 			pointsLeft-=2;
 		}
-		
+
 		// Scale score (it is now up to 2 * max * number of pairs matched)
 		totalScore /= 2 * maxScore * (drawnPairs.length - pairsLeft);
-		
+
 		// Return as percentage
 		return totalScore * 100f;
 	}

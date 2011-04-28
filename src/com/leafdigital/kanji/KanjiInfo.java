@@ -19,49 +19,151 @@ Copyright 2011 Samuel Marshall.
 package com.leafdigital.kanji;
 
 import java.io.*;
-import java.util.LinkedList;
+import java.util.*;
 
 import com.leafdigital.kanji.Stroke.*;
 
-/** 
+/**
  * Holds stroke info about a single kanji.
  */
 public class KanjiInfo
 {
-	/** 
-	 * Algorithm used for comparing kanji. 
+	/**
+	 * Algorithm used for comparing kanji.
 	 */
 	public enum MatchAlgorithm
 	{
-		/** 
+		/**
 		 * Accurate, fast, but strict algorithm (requires precise stroke count
 		 * and order).
 		 */
-		STRICT, 
+		STRICT(0, StrictComparer.class),
 		/**
-		 * Fuzzy matching algorithm  which allows arbitrary stroke order. Very slow.
+		 * Fuzzy matching algorithm which allows arbitrary stroke order. Very slow.
 		 */
-		FUZZY,
+		FUZZY(0, FuzzyComparer.class),
 		/**
-		 * Fuzzy matching algorithm  which allows arbitrary stroke order; with
+		 * Fuzzy matching algorithm which allows arbitrary stroke order; with
 		 * either +1 or -1 stroke count (does not include =). Even slower.
 		 */
-		FUZZY_1OUT,
+		FUZZY_1OUT(1, FuzzyComparer.class),
 		/**
-		 * Fuzzy matching algorithm  which allows arbitrary stroke order; with
+		 * Fuzzy matching algorithm which allows arbitrary stroke order; with
 		 * either +2 or -2 stroke count. Also slow
 		 */
-		FUZZY_2OUT
+		FUZZY_2OUT(2, FuzzyComparer.class),
+		/**
+		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 */
+		DOTS(0, DotsComparer.class),
+		/**
+		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 * Allows +1 or -1 stroke count.
+		 */
+		DOTS_1OUT(1, DotsComparer.class),
+		/**
+		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 * Allows +2 or -2 stroke count.
+		 */
+		DOTS_2OUT(2, DotsComparer.class),
+		/**
+		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 */
+		SPANS(0, SpansComparer.class),
+		/**
+		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 * Allows +1 or -1 stroke count.
+		 */
+		SPANS_1OUT(1, SpansComparer.class),
+		/**
+		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 * Allows +2 or -2 stroke count.
+		 */
+		SPANS_2OUT(2, SpansComparer.class);
+
+		private int out;
+		private Class<? extends KanjiComparer> c;
+
+		MatchAlgorithm(int out, Class<? extends KanjiComparer> c)
+		{
+			this.out = out;
+			this.c = c;
+		}
+
+		/**
+		 * @return The number of strokes difference from correct for this algorithm
+		 *   (e.g. 1 for FUZZY_1OUT)
+		 */
+		public int getOut()
+		{
+			return out;
+		}
+
+		/**
+		 * Constructs a new comparer object with the given drawn kanji
+		 * @param drawn Drawn kanji
+		 * @return Comparer object, already inited
+		 */
+		public KanjiComparer newComparer(KanjiInfo drawn)
+		{
+			KanjiComparer comparer;
+			try
+			{
+				comparer = c.newInstance();
+			}
+			catch(InstantiationException e)
+			{
+				throw new Error("Incorrectly defined comparer", e);
+			}
+			catch(IllegalAccessException e)
+			{
+				throw new Error("Incorrectly defined comparer", e);
+			}
+			comparer.init(drawn);
+			return comparer;
+		}
 	};
-	
+
 	private String kanji;
 	private LinkedList<InputStroke> loadingStrokes;
 	private Stroke[] strokes;
 	private Direction[] strokeDirections, moveDirections;
 	private Location[] strokeStarts, strokeEnds;
-	
-	private FuzzyComparer fuzzyComparer;
-	
+
+	private HashMap<MatchAlgorithm, KanjiComparer> comparers;
+
+	/**
+	 * @return Stroke starts array
+	 */
+	public Location[] getStrokeStarts()
+	{
+		return strokeStarts;
+	}
+
+	/**
+	 * @return Stroke ends array
+	 */
+	public Location[] getStrokeEnds()
+	{
+		return strokeEnds;
+	}
+
+	/**
+	 * @return Stroke directions array
+	 */
+	public Direction[] getStrokeDirections()
+	{
+		return strokeDirections;
+	}
+
+	/**
+	 * @return Move directions array
+	 */
+	public Direction[] getMoveDirections()
+	{
+		return moveDirections;
+	}
+
 	/**
 	 * @param kanji Kanji character (should be a single character, but may be
 	 *   a UTF-16 surrogate pair)
@@ -71,7 +173,7 @@ public class KanjiInfo
 		this.kanji = kanji;
 		loadingStrokes = new LinkedList<InputStroke>();
 	}
-	
+
 	/**
 	 * @param kanji Kanji character (should be a single character, but may be
 	 *   a UTF-16 surrogate pair)
@@ -85,10 +187,10 @@ public class KanjiInfo
 		int count = (full.length()+1) / 12;
 		if((count * 12 - 1) != full.length())
 		{
-			throw new IllegalArgumentException("Invalid full (" + full 
+			throw new IllegalArgumentException("Invalid full (" + full
 				+ ") for kanji (" + kanji + ")");
 		}
-		
+
 		try
 		{
 			strokes = new Stroke[count];
@@ -99,7 +201,7 @@ public class KanjiInfo
 				{
 					offset++; // Skip colon
 				}
-				
+
 				strokes[i] = new Stroke(
 					getTwoDigitHexInt(full, offset),
 					getTwoDigitHexInt(full, offset+3),
@@ -114,10 +216,10 @@ public class KanjiInfo
 			throw new IllegalArgumentException("Invalid summary(" + full
 				+ ") for kanji (" + kanji + ")");
 		}
-		
+
 		findDirections();
 	}
-	
+
 	/**
 	 * Converts a two-digit, lowercase hex string to an integer. (This is a lot
 	 * faster than doing a substring and Integer.parseInt; I profiled it and
@@ -148,20 +250,20 @@ public class KanjiInfo
 		int count = (full.length()+1) / 12;
 		if(count < 1 || (count * 6 -3) != directions.length())
 		{
-			throw new IllegalArgumentException("Invalid directions (" + directions 
+			throw new IllegalArgumentException("Invalid directions (" + directions
 				+ ") for kanji (" + kanji + ")");
 		}
 		if((count * 12 - 1) != full.length())
 		{
-			throw new IllegalArgumentException("Invalid full (" + full 
+			throw new IllegalArgumentException("Invalid full (" + full
 				+ ") for kanji (" + kanji + ")");
 		}
-		
+
 		strokeDirections = new Direction[count];
 		strokeStarts = new Location[count];
 		strokeEnds = new Location[count];
 		moveDirections = new Direction[count-1];
-		
+
 		try
 		{
 			int offset = 0;
@@ -173,7 +275,7 @@ public class KanjiInfo
 					moveDirections[i-1] = Direction.fromString(directions.charAt(offset++) + "");
 					offset++; // Skip colon
 				}
-	
+
 				strokeStarts[i] = Location.fromString(directions.charAt(offset++) + "");
 				strokeDirections[i] = Direction.fromString(directions.charAt(offset++) + "");
 				strokeEnds[i] = Location.fromString(directions.charAt(offset++) + "");
@@ -195,11 +297,11 @@ public class KanjiInfo
 				{
 					offset++; // Skip colon
 				}
-				
+
 				strokes[i] = new Stroke(
-					Integer.parseInt(full.substring(offset, offset+2), 16),				
-					Integer.parseInt(full.substring(offset+3, offset+5), 16),				
-					Integer.parseInt(full.substring(offset+6, offset+8), 16),				
+					Integer.parseInt(full.substring(offset, offset+2), 16),
+					Integer.parseInt(full.substring(offset+3, offset+5), 16),
+					Integer.parseInt(full.substring(offset+6, offset+8), 16),
 					Integer.parseInt(full.substring(offset+9, offset+11), 16));
 				offset+=11;
 			}
@@ -217,7 +319,7 @@ public class KanjiInfo
 	 * @param stroke New stroke
 	 * @throws IllegalStateException If already finished
 	 */
-	public synchronized void addStroke(InputStroke stroke) throws IllegalStateException	
+	public synchronized void addStroke(InputStroke stroke) throws IllegalStateException
 	{
 		if(loadingStrokes == null)
 		{
@@ -225,23 +327,23 @@ public class KanjiInfo
 		}
 		loadingStrokes.add(stroke);
 	}
-	
+
 	/**
 	 * Marks kanji as finished, normalising all strokes.
 	 * @throws IllegalStateException If already finished
 	 */
-	public synchronized void finish() throws IllegalStateException	
+	public synchronized void finish() throws IllegalStateException
 	{
 		if(loadingStrokes == null)
 		{
 			throw new IllegalStateException("Cannot finish more than once");
 		}
-		
+
 		// Get stroke array and normalise it
 		InputStroke[] inputStrokes = loadingStrokes.toArray(
 			new InputStroke[loadingStrokes.size()]);
 		strokes = InputStroke.normalise(inputStrokes);
-		
+
 		// Find directions
 		findDirections();
 	}
@@ -267,7 +369,7 @@ public class KanjiInfo
 			moveDirections[i-1] = strokes[i].getMoveDirection(strokes[i-1]);
 		}
 	}
-	
+
 	/**
 	 * Checks that this kanji has been finished.
 	 * @throws IllegalStateException If not finished
@@ -279,15 +381,15 @@ public class KanjiInfo
 			throw new IllegalStateException("Cannot call on unfinished kanji");
 		}
 	}
-	
-	/** 
+
+	/**
 	 * @return Kanji character (one character or a two-character surrogate pair)
 	 */
 	public String getKanji()
 	{
 		return kanji;
 	}
-	
+
 	/**
 	 * @return Stroke count
 	 * @throws IllegalStateException If not finished
@@ -297,11 +399,11 @@ public class KanjiInfo
 		checkFinished();
 		return strokeDirections.length;
 	}
-	
+
 	/**
 	 * @param index Stroke index
 	 * @return Stroke
-	 * @throws ArrayIndexOutOfBoundsException If index >= 
+	 * @throws ArrayIndexOutOfBoundsException If index >=
 	 *   {@link #getStrokeCount()}
 	 * @throws IllegalStateException If loaded in a way that doesn't give
 	 *   these
@@ -313,10 +415,10 @@ public class KanjiInfo
 		{
 			throw new IllegalStateException("Cannot call getStroke in this state");
 		}
-		
+
 		return strokes[index];
 	}
-	
+
 	/**
 	 * Obtains all the directions (stroke and move).
 	 * @return All the direction arrows
@@ -338,7 +440,7 @@ public class KanjiInfo
 		}
 		return out.toString();
 	}
-	
+
 	private String getTwoDigitPosition(int intPos)
 	{
 		String result = Integer.toHexString(intPos);
@@ -348,7 +450,7 @@ public class KanjiInfo
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Obtains all stroke details as a from/to summary.
 	 * @return Full details as string
@@ -357,9 +459,9 @@ public class KanjiInfo
 	{
 		if(strokes == null)
 		{
-			throw new IllegalStateException("Strokes not available");			
+			throw new IllegalStateException("Strokes not available");
 		}
-		
+
 		StringBuilder out = new StringBuilder();
 		for(Stroke stroke : strokes)
 		{
@@ -378,7 +480,7 @@ public class KanjiInfo
 
 		return out.toString();
 	}
-	
+
 	/**
 	 * Writes the basic info from this kanji to short XML format data.
 	 * @param out Writer that receives data
@@ -390,104 +492,34 @@ public class KanjiInfo
 			+ Integer.toHexString(Character.codePointAt(kanji, 0)).toUpperCase()
 			+ "' strokes='" + getFullSummary() + "'/>\n");
 	}
-	
-	private final static float STROKE_DIRECTION_WEIGHT = 1.0f;
-	private final static float MOVE_DIRECTION_WEIGHT = 0.8f;
-	private final static float STROKE_LOCATION_WEIGHT = 0.6f;
-	
-	private final static float CLOSE_WEIGHT = 0.7f;
-	
+
 	/**
 	 * Gets a score for matching with the specified other kanji. Scores are
 	 * only comparable against other kanji with same stroke count.
 	 * @param other Other kanji
 	 * @param algo Match algorithm to use
 	 * @return Score
-	 * @throws IllegalArgumentException If other kanji has different stroke count
+	 * @throws IllegalArgumentException If other kanji has inappropriate stroke count
 	 */
-	public float getMatchScore(KanjiInfo other, MatchAlgorithm algo) 
+	public float getMatchScore(KanjiInfo other, MatchAlgorithm algo)
 		throws IllegalArgumentException
 	{
-		switch(algo)
+		KanjiComparer comparer;
+		synchronized(this)
 		{
-		case STRICT:
-			return getStrictMatchScore(other);
-		case FUZZY:
-		case FUZZY_1OUT:
-		case FUZZY_2OUT:
-			if(fuzzyComparer == null)
+			if(comparers == null)
 			{
-				fuzzyComparer = new FuzzyComparer(this);
+				comparers = new HashMap<MatchAlgorithm, KanjiComparer>();
 			}
-			return fuzzyComparer.getMatchScore(other);
-		default:
-			throw new IllegalArgumentException("Unknown algorithm");
-		}
-	}
-	
-	/**
-	 * Gets a score for matching with the specified other kanji. Scores are
-	 * only comparable against other kanji with same stroke count.
-	 * @param other Other kanji
-	 * @return Score
-	 * @throws IllegalArgumentException If other kanji has different stroke count
-	 */
-	private float getStrictMatchScore(KanjiInfo other) throws IllegalArgumentException
-	{
-		if(other.strokeStarts.length != strokeStarts.length)
-		{
-			throw new IllegalArgumentException(
-				"Can only compare with same match length");
-		}
-		
-		float score = 0;
-		for(int i=0; i<strokeStarts.length; i++)
-		{
-			// Stroke direction
-			if(strokeDirections[i] == other.strokeDirections[i])
+
+			comparer = comparers.get(algo);
+			if(comparer == null)
 			{
-				score += STROKE_DIRECTION_WEIGHT;
-			}
-			else if(strokeDirections[i].isClose(other.strokeDirections[i]))
-			{
-				score += STROKE_DIRECTION_WEIGHT * CLOSE_WEIGHT;
-			}
-			
-			// Move direction
-			if(i>0)
-			{
-				if(moveDirections[i-1] == other.moveDirections[i-1])
-				{
-					score += MOVE_DIRECTION_WEIGHT;
-				}
-				else if(moveDirections[i-1].isClose(other.moveDirections[i-1]))
-				{
-					score += MOVE_DIRECTION_WEIGHT * CLOSE_WEIGHT;
-				}
-			}
-			
-			// Start and end locations
-			if(strokeStarts[i] == other.strokeStarts[i])
-			{
-				score += STROKE_LOCATION_WEIGHT;
-			}
-			else if(strokeStarts[i].isClose(other.strokeStarts[i]))
-			{
-				score += STROKE_LOCATION_WEIGHT * CLOSE_WEIGHT;
-			}
-			if(strokeEnds[i] == other.strokeEnds[i])
-			{
-				score += STROKE_LOCATION_WEIGHT;
-			}
-			else if(strokeEnds[i].isClose(other.strokeEnds[i]))
-			{
-				score += STROKE_LOCATION_WEIGHT * CLOSE_WEIGHT;
+				comparer = algo.newComparer(this);
+				comparers.put(algo, comparer);
 			}
 		}
-		
-		float max = strokeStarts.length * (STROKE_DIRECTION_WEIGHT + 2 * STROKE_LOCATION_WEIGHT) +
-			(strokeStarts.length - 1) * MOVE_DIRECTION_WEIGHT;
-		
-		return 100.0f * score / max;
+
+		return comparer.getMatchScore(other);
 	}
 }

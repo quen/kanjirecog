@@ -18,14 +18,14 @@ Copyright 2011 Samuel Marshall.
 */
 package com.leafdigital.kanji;
 
-/** 
+/**
  * Single kanji stroke.
  */
 public class Stroke
 {
 	// All values in range 0-255
 	private int startX, startY, endX, endY;
-	
+
 	/**
 	 * Constructs from float data.
 	 * @param startX Start position (x) 0-1
@@ -39,7 +39,7 @@ public class Stroke
 	{
 		this(convert(startX), convert(startY), convert(endX), convert(endY));
 	}
-	
+
 	private static int convert(float value)
 	{
 		return (int)(value * 255 + 0.49999);
@@ -56,7 +56,7 @@ public class Stroke
 	Stroke(int startX, int startY, int endX, int endY)
 		throws IllegalArgumentException
 	{
-		if(startX < 0 || startX > 255 || startY < 0 || startY > 255 
+		if(startX < 0 || startX > 255 || startY < 0 || startY > 255
 			|| endX < 0 || endX > 255 || endY < 0 || endY > 255) {
 			throw new IllegalArgumentException("Value out of range");
 		}
@@ -65,56 +65,56 @@ public class Stroke
 		this.startY = startY;
 		this.endY = endY;
 	}
-	
-	/** 
+
+	/**
 	 * @return Start X position
 	 */
 	public int getStartX()
 	{
 		return startX;
 	}
-	
-	/** 
-	 * @return End X position 
+
+	/**
+	 * @return End X position
 	 */
 	public int getEndX()
 	{
 		return endX;
 	}
-	
-	/** 
+
+	/**
 	 * @return Start Y position
 	 */
 	public int getStartY()
 	{
 		return startY;
 	}
-	
-	/** 
+
+	/**
 	 * @return End Y position
 	 */
 	public int getEndY()
 	{
 		return endY;
 	}
-	
+
 	/**
 	 * Represents approximate location of start/end points of stroke.
 	 */
 	public enum Location
 	{
 		/** Basically N */
-		N(1, 0, "\u2580"), 
+		N(1, 0, "\u2580"),
 		/** Basically NE */
-		NE(2, 0, "\u259c"), 
+		NE(2, 0, "\u259c"),
 		/** Basically E */
-		E(2, 1, "\u2590"), 
+		E(2, 1, "\u2590"),
 		/** Basically SE */
 		SE(2, 2, "\u259f"),
 		/** Basically S */
-		S(1, 2, "\u2584"), 
+		S(1, 2, "\u2584"),
 		/** Basically SW */
-		SW(0, 2, "\u2599"), 
+		SW(0, 2, "\u2599"),
 		/** Basically W */
 		W(0, 1, "\u258c"),
 		/** Basically NW */
@@ -124,20 +124,20 @@ public class Stroke
 
 		private int x, y;
 		private String display;
-		
+
 		Location(int x, int y, String display)
 		{
 			this.x = x;
 			this.y = y;
 			this.display = display;
 		}
-		
+
 		@Override
 		public String toString()
 		{
 			return display;
 		}
-		
+
 		/**
 		 * Reads from string.
 		 * @param s Input string
@@ -155,7 +155,7 @@ public class Stroke
 			}
 			throw new IllegalArgumentException("Unknown location (" + s + ")");
 		}
-		
+
 		/**
 		 * @param other Another direction
 		 * @return True if this direction is within one step of the other direction
@@ -164,7 +164,7 @@ public class Stroke
 		{
 			return Math.abs(x - other.x) <= 1 && Math.abs(y - other.y) <= 1;
 		}
-		
+
 		/**
 		 * @param x Normalised X
 		 * @param y Normalised Y
@@ -219,46 +219,46 @@ public class Stroke
 			}
 		}
 	}
-	
+
 	/**
 	 * The direction of a stroke.
 	 */
 	public enum Direction
 	{
 		/** Basically N */
-		N(0, "\u2191"), 
+		N(0, "\u2191"),
 		/** Basically NE */
-		NE(1, "\u2197"), 
+		NE(1, "\u2197"),
 		/** Basically E */
-		E(2, "\u2192"), 
+		E(2, "\u2192"),
 		/** Basically SE */
 		SE(3, "\u2198"),
 		/** Basically S */
-		S(4, "\u2193"), 
+		S(4, "\u2193"),
 		/** Basically SW */
-		SW(5, "\u2199"), 
+		SW(5, "\u2199"),
 		/** Basically W */
 		W(6, "\u2190"),
 		/** Basically NW */
 		NW(7, "\u2196"),
 		/** No clear movement */
 		X(-1, "\u26aa");
-		
+
 		private int index;
 		private String display;
-		
+
 		Direction(int index, String display)
 		{
 			this.index = index;
 			this.display = display;
 		}
-		
+
 		@Override
 		public String toString()
 		{
 			return display;
 		}
-		
+
 		/**
 		 * Reads from string.
 		 * @param s Input string
@@ -276,7 +276,7 @@ public class Stroke
 			}
 			throw new IllegalArgumentException("Unknown direction (" + s + ")");
 		}
-		
+
 		/**
 		 * @param other Another direction
 		 * @return True if this direction is within one step of the other direction
@@ -287,10 +287,10 @@ public class Stroke
 			{
 				return true;
 			}
-			return (this.index == ( (other.index + 1) % 8 ) ) 
+			return (this.index == ( (other.index + 1) % 8 ) )
 				|| ( ((this.index + 1) % 8 ) == other.index);
 		}
-		
+
 		/**
 		 * Threshold above which something counts as directional.
 		 */
@@ -302,29 +302,30 @@ public class Stroke
 		 * be at least 10 * 77 / 256 in order to count as SE).
 		 */
 		private static int DIAGONAL_THRESHOLD = 77;
-		
+
 		/**
 		 * Calculates the direction between two points.
 		 * @param startX Start X
 		 * @param startY Start Y
 		 * @param endX End X
 		 * @param endY End Y
+		 * @param threshold Direction threshold (movement under this is not counted as directional)
 		 * @return Direction of stroke
 		 * @throws IllegalStateException If not normalised
 		 */
 		private static Direction get(int startX, int startY,
-			int endX, int endY) throws IllegalStateException
+			int endX, int endY, int threshold) throws IllegalStateException
 		{
 			// Get movement in each direction
 			int deltaX = endX - startX, deltaY = endY - startY;
-			
+
 			// Check if it's not really movement at all (under threshold)
 			int absDeltaX = Math.abs(deltaX), absDeltaY = Math.abs(deltaY);
-			if(absDeltaX < DIRECTION_THRESHOLD && absDeltaY < DIRECTION_THRESHOLD)
+			if(absDeltaX < threshold && absDeltaY < threshold)
 			{
 				return Direction.X;
 			}
-			
+
 			if(absDeltaX > absDeltaY)
 			{
 				// X movement is more significant
@@ -379,18 +380,29 @@ public class Stroke
 					}
 				}
 			}
-		}		
+		}
 	}
-	
+
 	/**
 	 * Calculates the direction of this stroke.
 	 * @return Direction of stroke
 	 */
 	public Direction getDirection()
 	{
-		return Direction.get(startX, startY, endX, endY);
+		return Direction.get(startX, startY, endX, endY,
+			Direction.DIRECTION_THRESHOLD);
 	}
-	
+
+	/**
+	 * Calculates the direction of this stroke without imposing a threshold
+	 * that considers short moves as nondirectional.
+	 * @return Direction of stroke (will not be Direction.X)
+	 */
+	public Direction getDirectionNoThreshold()
+	{
+		return Direction.get(startX, startY, endX, endY, 0);
+	}
+
 	/**
 	 * Calculates the direction that the pen moved between the end of the
 	 * last stroke and the start of this one.
@@ -399,17 +411,18 @@ public class Stroke
 	 */
 	public Direction getMoveDirection(Stroke previous)
 	{
-		return Direction.get(previous.endX, previous.endY, startX, startY);
+		return Direction.get(previous.endX, previous.endY, startX, startY,
+			Direction.DIRECTION_THRESHOLD);
 	}
-	
+
 	/**
 	 * @return Approximate location of start of stroke
 	 */
-	public Location getStartLocation() 
+	public Location getStartLocation()
 	{
 		return Location.get(startX, startY);
 	}
-	
+
 	/**
 	 * @return Approximate location of end of stroke
 	 */
@@ -417,7 +430,7 @@ public class Stroke
 	{
 		return Location.get(endX, endY);
 	}
-	
+
 	@Override
 	public String toString()
 	{

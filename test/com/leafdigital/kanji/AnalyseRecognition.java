@@ -59,7 +59,8 @@ public class AnalyseRecognition
 	private final static String[] DEFAULT_WHERE_CLAUSES =
 	{
 		"clientname like 'leafdigital %'",
-		"clientname like 'leafdigital %' and ranking=1 and algo='STRICT'"
+		"clientname like 'leafdigital %' and ranking=1 and algo='STRICT'",
+		"clientname like 'leafdigital %' and algo='FUZZY'"
 	};
 
 	/**
@@ -163,6 +164,8 @@ public class AnalyseRecognition
 	private ExecutorService threadPool;
 
 	private Map<MatchAlgorithm, AlgoResults> results;
+
+	private long startTime;
 
 	/**
 	 * Tracks results for a specific algorithm.
@@ -285,6 +288,8 @@ public class AnalyseRecognition
 		list = new KanjiList(new FileInputStream("data/strokes-20100823.xml"));
 		results = new TreeMap<MatchAlgorithm, AlgoResults>();
 
+		startTime = System.currentTimeMillis();
+
 		// Start the thread pool
 		threadPool = Executors.newFixedThreadPool(
 			Runtime.getRuntime().availableProcessors());
@@ -318,23 +323,13 @@ public class AnalyseRecognition
 				int actualStrokes = list.find(kanji).getStrokeCount();
 
 				// Decide which algorithms to use based on stroke count
-				MatchAlgorithm[] algorithms;
-				if(actualStrokes == drawingInfo.getStrokeCount())
+				List<MatchAlgorithm> algorithms = new LinkedList<MatchAlgorithm>();
+				for(MatchAlgorithm algo : MatchAlgorithm.values())
 				{
-					algorithms = new MatchAlgorithm[] { MatchAlgorithm.STRICT,
-						MatchAlgorithm.FUZZY };
-				}
-				else if(Math.abs(actualStrokes - drawingInfo.getStrokeCount()) == 1)
-				{
-					algorithms = new MatchAlgorithm[] { MatchAlgorithm.FUZZY_1OUT };
-				}
-				else if(Math.abs(actualStrokes - drawingInfo.getStrokeCount()) == 2)
-				{
-					algorithms = new MatchAlgorithm[] { MatchAlgorithm.FUZZY_1OUT };
-				}
-				else
-				{
-					algorithms = new MatchAlgorithm[0];
+					if(algo.getOut() == Math.abs(actualStrokes - drawingInfo.getStrokeCount()))
+					{
+						algorithms.add(algo);
+					}
 				}
 
 				// Process for each algorithm
@@ -396,6 +391,7 @@ public class AnalyseRecognition
 	{
 		threadPool.shutdown();
 		threadPool.awaitTermination(1, TimeUnit.DAYS);
+		long endTime = System.currentTimeMillis();
 		System.err.println();
 		for(Map.Entry<MatchAlgorithm,AlgoResults> entry : results.entrySet())
 		{
@@ -413,5 +409,12 @@ public class AnalyseRecognition
 			// Print results
 			entry.getValue().display();
 		}
+		System.out.println();
+		System.out.println("PERFORMANCE");
+		System.out.println("===========");
+		System.out.println();
+		double msPerCharacter = (double)(endTime - startTime) / (double)processed;
+		System.out.println(String.format("%.1f ms / character",
+			msPerCharacter));
 	}
 }

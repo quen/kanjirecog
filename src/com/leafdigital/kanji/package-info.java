@@ -54,7 +54,7 @@ drawing.
 
 <p>
 To compare and rank the user's drawing, use 
-{@link com.leafdigital.kanji.KanjiList#getTopMatches(KanjiInfo, KanjiInfo.MatchAlgorithm)}
+{@link com.leafdigital.kanji.KanjiList#getTopMatches(KanjiInfo, KanjiInfo.MatchAlgorithm, KanjiList.Progress)}
 to obtain matches.
 </p>
 
@@ -79,7 +79,7 @@ correct stroke count.</li>
 
 <p>
 The
-{@link com.leafdigital.kanji.KanjiList#getTopMatches(KanjiInfo, KanjiInfo.MatchAlgorithm)}
+{@link com.leafdigital.kanji.KanjiList#getTopMatches(KanjiInfo, KanjiInfo.MatchAlgorithm, KanjiList.Progress)}
 function returns a number of {@link com.leafdigital.kanji.KanjiMatch} objects, in order. Each
 one contains information about the matched kanji and the match percentage.
 </p> 
