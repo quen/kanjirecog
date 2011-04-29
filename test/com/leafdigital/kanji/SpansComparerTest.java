@@ -36,26 +36,6 @@ public class SpansComparerTest
 	private static boolean DEBUG = false;
 
 	/**
-	 * Tests the stroke position sorting.
-	 */
-	@Test
-	public void testGetStrokePositions()
-	{
-		KanjiInfo info = new KanjiInfo("?");
-		info.addStroke(new InputStroke(0f,0f,0.1f,0.5f));
-		info.addStroke(new InputStroke(0.3f,0f,0.31f,0.5f));
-		info.addStroke(new InputStroke(0.31f,0f,0.32f,0.5f));
-		info.finish();
-
-		int[] startX = new int[3], startY = new int[3],
-			endX = new int[3], endY = new int[3];
-		SpansComparer.getStrokePositions(info, startX, startY, endX, endY);
-
-		assertArrayEquals(new int[] {0, 2, 3}, startX);
-		assertArrayEquals(new int[] {1, 3, 4}, endX);
-	}
-
-	/**
 	 * Tests basic functionality
 	 * @throws Exception Any error
 	 */
