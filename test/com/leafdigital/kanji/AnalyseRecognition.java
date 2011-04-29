@@ -60,7 +60,8 @@ public class AnalyseRecognition
 	{
 		"clientname like 'leafdigital %'",
 		"clientname like 'leafdigital %' and ranking=1 and algo='STRICT'",
-		"clientname like 'leafdigital %' and algo='FUZZY'"
+		"clientname like 'leafdigital %' and algo='FUZZY'",
+		"clientname like 'leafdigital %' and algo='FUZZY_1OUT'"
 	};
 
 	/**

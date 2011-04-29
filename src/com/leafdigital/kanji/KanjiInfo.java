@@ -53,30 +53,19 @@ public class KanjiInfo
 		 */
 		FUZZY_2OUT(2, FuzzyComparer.class),
 		/**
-		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
-		 */
-		DOTS(0, DotsComparer.class),
-		/**
-		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
-		 * Allows +1 or -1 stroke count.
-		 */
-		DOTS_1OUT(1, DotsComparer.class),
-		/**
-		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
-		 * Allows +2 or -2 stroke count.
-		 */
-		DOTS_2OUT(2, DotsComparer.class),
-		/**
-		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 * Second fuzzy matching algorithm based on the 'spans' created by each
+		 * stroke.
 		 */
 		SPANS(0, SpansComparer.class),
 		/**
-		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 * Second fuzzy matching algorithm based on the 'spans' created by each
+		 * stroke.
 		 * Allows +1 or -1 stroke count.
 		 */
 		SPANS_1OUT(1, SpansComparer.class),
 		/**
-		 * Second fuzzy matching algorithm based on the 'dots' of each stroke.
+		 * Second fuzzy matching algorithm based on the 'spans' created by each
+		 * stroke.
 		 * Allows +2 or -2 stroke count.
 		 */
 		SPANS_2OUT(2, SpansComparer.class);
