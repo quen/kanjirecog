@@ -35,18 +35,16 @@ public class SpansComparer implements KanjiComparer
 	private final static int ARRAY_SIZE =
 		LOCATION_RANGE * LOCATION_RANGE * LOCATION_RANGE * LOCATION_RANGE;
 
-	private final static int SCORE_RIGHTDIRECTION = 1;
+	private final static int SCORE_RIGHTDIRECTION = 2;
 	private final static int SCORE_EXACTLOCATION = 4;
-	private final static int SCORE_STRAIGHTLOCATION = 2;
-	private final static int SCORE_DIAGONALLOCATION = 1;
+	private final static int SCORE_STRAIGHTLOCATION = 3;
+	private final static int SCORE_DIAGONALLOCATION = 2;
 
 	private final static int MAX_SCORE =
 		SCORE_EXACTLOCATION * 2 + SCORE_RIGHTDIRECTION;
 	private final static int MIN_SCORE = SCORE_DIAGONALLOCATION * 2;
 
 	private final static int NO_MATCH = -1;
-
-	// Possible scores: 9, 8, 7, 6, 5, 4, 3, 2
 
 	/**
 	 * Array of possible matching strokes. The indexes of this array are in
@@ -157,24 +155,73 @@ public class SpansComparer implements KanjiComparer
 
 		// Loop through all the strokes
 		count = info.getStrokeCount();
+		int[] startX = new int[count], startY = new int[count],
+			endX = new int[count], endY = new int[count];
+		getStrokePositions(info, startX, startY, endX, endY);
 		for(int i=0; i<count; i++)
 		{
-			Stroke s = info.getStroke(i);
-
-			// Work out X and Y
-			int startX = (s.getStartX() * LOCATION_RANGE) >> 8;
-			int startY = (s.getStartY() * LOCATION_RANGE) >> 8;
-			int endX = (s.getEndX() * LOCATION_RANGE) >> 8;
-			int endY = (s.getEndY() * LOCATION_RANGE) >> 8;
-
-			addSpan(i, startX, startY, endX, endY, true);
-			addSpan(i, endX, endY, startX, startY, false);
+			addSpan(i, startX[i], startY[i], endX[i], endY[i], true);
+			addSpan(i, endX[i], endY[i], startX[i], startY[i], false);
 		}
 
 		// Finish everything
 		for(int i=0; i<ARRAY_SIZE; i++)
 		{
 			positions[i].finish();
+		}
+	}
+
+	/**
+	 * Converts stroke positions into proportional positions (compared to all
+	 * the other X, Y positions).
+	 * @param info Kanji to convert
+	 * @param startX Array to receive stroke start X data; will be filled with
+	 *   values 0 .. LOCATION_RANGE-1
+	 * @param startY Same for start Y
+	 * @param endX Same for end X
+	 * @param endY Same for end Y
+	 */
+	static void getStrokePositions(KanjiInfo info,
+		int[] startX, int[] startY, int[] endX, int[] endY)
+	{
+		// Get all the stroke X, Y positions and sort them into order
+		SortedSet<Integer> xPositions = new TreeSet<Integer>();
+		SortedSet<Integer> yPositions = new TreeSet<Integer>();
+		for(int i=0; i<info.getStrokeCount(); i++)
+		{
+			Stroke stroke = info.getStroke(i);
+			xPositions.add(stroke.getStartX());
+			xPositions.add(stroke.getEndX());
+			yPositions.add(stroke.getStartY());
+			yPositions.add(stroke.getEndY());
+		}
+
+		// Convert all into the LOCATION_RANGE positions
+		Map<Integer, Integer> xConversion = new HashMap<Integer, Integer>();
+		float eachTime = (float)LOCATION_RANGE / xPositions.size();
+		float current = eachTime / 2;
+		for(int x : xPositions)
+		{
+			xConversion.put(x, (int)current);
+			current += eachTime;
+		}
+		Map<Integer, Integer> yConversion = new HashMap<Integer, Integer>();
+		eachTime = (float)LOCATION_RANGE / yPositions.size();
+		current = eachTime / 2;
+		for(int y : yPositions)
+		{
+			yConversion.put(y, (int)current);
+			current += eachTime;
+		}
+
+		// Now fill in the stroke arrays
+		for(int i=0; i<info.getStrokeCount(); i++)
+		{
+			Stroke stroke = info.getStroke(i);
+			startX[i] = xConversion.get(stroke.getStartX());
+			startY[i] = yConversion.get(stroke.getStartY());
+			endX[i] = xConversion.get(stroke.getEndX());
+			endY[i] = yConversion.get(stroke.getEndY());
 		}
 	}
 
@@ -271,17 +318,12 @@ public class SpansComparer implements KanjiComparer
 		int otherUnmatched = otherCount;
 		boolean[] otherUsed = new boolean[otherCount];
 		int[] otherIndexes = new int[otherCount];
+		int[] startX = new int[otherCount], startY = new int[otherCount],
+			endX = new int[otherCount], endY = new int[otherCount];
+		getStrokePositions(other, startX, startY, endX, endY);
 		for(int i=0; i<otherCount; i++)
 		{
-			Stroke s = other.getStroke(i);
-
-			// Work out X and Y
-			int startX = (s.getStartX() * LOCATION_RANGE) >> 8;
-			int startY = (s.getStartY() * LOCATION_RANGE) >> 8;
-			int endX = (s.getEndX() * LOCATION_RANGE) >> 8;
-			int endY = (s.getEndY() * LOCATION_RANGE) >> 8;
-
-			otherIndexes[i] = getIndex(startX, startY, endX, endY);
+			otherIndexes[i] = getIndex(startX[i], startY[i], endX[i], endY[i]);
 		}
 
 		// Calculate total score
