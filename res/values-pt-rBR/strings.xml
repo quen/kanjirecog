@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">Kanji draw</string>
+
+	<string name="drawkanji">Adicionar kanji</string>
+	<string name="copy">Copiar e fechar</string>
+	<string name="explanation">Depois de copiar o kanji, segure em qualquer campo de texto
+		no app e escolha Colar para inserir o kanji.</string>
+	<string name="menuhint">Pressione a tecla MENU para configurações.</string>
+	<string name="copyright">leafdigital Kanji draw &#169; 2011 Samuel Marshall</string>
+
+	<string name="undo">Desfazer</string>
+	<string name="clear">Limpar</string>
+	<string name="strokes">Tentativas</string>
+	<string name="done">Pronto</string>
+	<string name="fuzzy">Correspondências Inexatas</string>
+	<string name="waitexact">Procurando correspondências exatas...</string>
+	<string name="pickexact">Correspondências exatas (# tentativas)</string>
+	<string name="pickexact1">Correspondência exata (1 tentativa)</string>
+	<string name="waitfuzzy">Procurando correspondências inexatas...</string>
+	<string name="pickfuzzy">Correspondências inexatas (# tentativas)</string>
+	<string name="pickfuzzy1">Correspondência inexata (1 tentativa)</string>
+	<string name="more">Mais</string>
+	<string name="plusminus1">Correspondências inexatas (± 1 tentativa)</string>
+	<string name="pickfuzzypm1">Correspondências inexatas (# tentativas ± 1)</string>
+	<string name="pickfuzzy1pm1">Correspondências inexatas (2 tentativas)</string>
+	<string name="giveup">Desistir</string>
+	<string name="settings">Configurações</string>
+	<string name="quit">Sair</string>
+
+	<string name="notification">Ícone de acesso rápido</string>
+	<string name="shownotification">Mostrar ícone na barra superior</string>
+	<string name="shownotification_on">O ícone na barra superior lhe permite inserir kanji de forma rápida dentro de outro app.</string>
+	<string name="shownotification_off">O ícone não é mostrado na barra superior. Iniciar app manualmente para inserir kanji.</string>
+	<string name="startwithsystem">Iniciar com telefone</string>
+	<string name="startwithsystem_on">É carregado automaticamente na inicialização, então o ícone está sempre disponível.</string>
+	<string name="startwithsystem_off">O ícone não aparece até que você abra o app pela primeira vez.</string>
+	<string name="preferencestitle">Preferências do desenho do kanji</string>
+
+	<string name="privacy">Privacidade</string>
+	<string name="reportstats">Relatar dados de desenho</string>
+	<string name="reportstats_on">Se a rede estiver disponível, os dados de desenho são enviados (para melhoramentos futuros).</string>
+	<string name="reportstats_off">Nenhuma informação nunca será relatada para o desenvolvedor.</string>
+
+	<string name="notificationtitle">Desenhar kanji</string>
+	<string name="notificationtext">Selecione para desenhar caracteres kanji</string>
+</resources>
